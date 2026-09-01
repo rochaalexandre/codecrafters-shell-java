@@ -5,16 +5,18 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.print("$ ");
-            String userCommand = scanner.nextLine();
+            String input = scanner.nextLine();
+            String cmd = input.split(" ", 2)[0];
 
-            if (userCommand.equals("exit")) {
+            if (input.equals("exit")) {
                 break;
-            } else if (userCommand.startsWith("echo")) {
-                System.out.print(userCommand.replace("echo ", ""));
-            } else {
-                System.out.printf("%s: command not found", userCommand);
             }
-            System.out.println();
+            String output = switch (cmd) {
+                case "echo" -> input.replace("echo", "");
+                default -> cmd +":command not found";
+            };
+
+            System.out.println(output);
         }
     }
 }
