@@ -7,13 +7,12 @@ public class Main {
             System.out.print("$ ");
             String userCommand = scanner.nextLine();
 
-            switch (userCommand) {
-                case "exit":
-                    break;
-                case "echo":
-                    System.out.printf("%s: command not found", userCommand);
-                default:
-                    System.out.printf("%s: command not found", userCommand);
+            if (userCommand.equals("exit")) {
+                break;
+            } else if (userCommand.startsWith("echo")) {
+                System.out.print(userCommand.replace("echo ", ""));
+            } else {
+                System.out.printf("%s: command not found", userCommand);
             }
             System.out.println();
         }
