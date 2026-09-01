@@ -2,9 +2,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
@@ -23,27 +21,47 @@ public class Main {
             if (cmd.equals(EXIT)) {
                 break;
             }
-
-            String output = getOutput(input, cmd, userArgs);
-
-            System.out.println(output);
+            Optional<String> output = getOutput(input, cmd, userArgs);
+            output.ifPresent(System.out::println);
         }
     }
 
-    private static String getOutput(String input, String cmd, String userArgs) {
-        String output = "";
+    private static Optional<String> getOutput(String input, String cmd, String userArgs) throws Exception {
+        String output = null;
         if (cmd.equals(ECHO)) {
             output = userArgs.replace("echo ", "");
         } else if (cmd.equals(TYPE)) {
-            if (BUILT_IN_COMMANDS.contains(userArgs)) {
-                output = userArgs + " is a shell builtin";
-            } else {
-                output = findExecutable(userArgs).map(path -> userArgs + " is " + path).orElseGet(() -> userArgs + ": not found");
-            }
+            output = getCommandType(userArgs);
         } else {
-            output = cmd + ": command not found";
+            if (findExecutable(cmd).isPresent()) {
+               executeProgram(cmd, userArgs);
+            } else {
+                output = cmd + ": command not found";
+            }
         }
-        return output;
+        return Optional.ofNullable(output);
+    }
+
+    private static void executeProgram(String cmd, String userArgs) throws Exception {
+        List<String> cmdList = new ArrayList<>();
+        cmdList.add(cmd);
+        if (!userArgs.isBlank()) {
+            cmdList.addAll(Arrays.asList(userArgs.split(" ")));
+        }
+        ProcessBuilder pb = new ProcessBuilder(cmdList);
+        pb.directory(new File(System.getProperty("user.dir")));
+        pb.inheritIO();
+        try (Process proc = pb.start()) {
+            proc.waitFor();
+        }
+    }
+
+    private static String getCommandType(String userArgs) {
+        if (BUILT_IN_COMMANDS.contains(userArgs)) {
+            return userArgs + " is a shell builtin";
+        }
+
+        return findExecutable(userArgs).map(path -> userArgs + " is " + path).orElseGet(() -> userArgs + ": not found");
     }
 
     private static Optional<Path> findExecutable(String userArgs) {
