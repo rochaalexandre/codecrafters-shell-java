@@ -1,4 +1,9 @@
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Main {
@@ -32,13 +37,25 @@ public class Main {
         } else if (cmd.equals(TYPE)) {
             if (BUILT_IN_COMMANDS.contains(userArgs)) {
                 output = userArgs + " is a shell builtin";
-            } else if (!BUILT_IN_COMMANDS.contains(userArgs)) {
-                output = userArgs + ": not found";
+            } else {
+                Optional<Path> exe = findExecutable(userArgs);
+                output = exe.map(path -> userArgs + " is " + path).orElseGet(() -> userArgs + ": not found");
             }
         } else {
             output = cmd + ": command not found";
         }
         return output;
+    }
+
+    private static Optional<Path> findExecutable(String userArgs) {
+        String envPath = System.getenv("PATH");
+        for (String dir : envPath.split(File.pathSeparator)) {
+            Path file = Paths.get(dir, userArgs);
+            if (Files.exists(file) && Files.isExecutable(file)) {
+                return Optional.of(file);
+            }
+        }
+        return Optional.empty();
     }
 
     private static String getCmd(String input) {
