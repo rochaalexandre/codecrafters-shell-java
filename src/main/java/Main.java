@@ -15,6 +15,9 @@ public class Main {
             String input = scanner.nextLine();
             String cmd = getCmd(input);
             String userArgs = getUserArgs(input);
+            if (cmd.equals(EXIT)) {
+                break;
+            }
 
             String output = getOutput(input, cmd, userArgs);
 
@@ -23,10 +26,8 @@ public class Main {
     }
 
     private static String getOutput(String input, String cmd, String userArgs) {
-        String output ="";
-        if (cmd.equals(EXIT)) {
-            return null;
-        } else if (cmd.equals(ECHO)) {
+        String output = "";
+        if (cmd.equals(ECHO)) {
             output = userArgs.replace("echo ", "");
         } else if (cmd.equals(TYPE)) {
             if (BUILT_IN_COMMANDS.contains(userArgs)) {
