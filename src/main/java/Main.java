@@ -13,32 +13,41 @@ public class Main {
         while (true) {
             System.out.print("$ ");
             String input = scanner.nextLine();
-            String[] parts = input.split(" ", 2);
-            String cmd = parts[0];
-            String userArgs = getUserArgs(parts);
+            String cmd = getCmd(input);
+            String userArgs = getUserArgs(input);
 
-            String output = "";
-            if (input.equals(EXIT)) {
-                break;
-            } else if (cmd.equals(ECHO)) {
-                output = input.replace("echo ", "");
-            } else if (cmd.equals(TYPE)) {
-                if (BUILT_IN_COMMANDS.contains(userArgs)) {
-                    output = userArgs + " is a shell builtin";
-                } else  if (!BUILT_IN_COMMANDS.contains(userArgs)) {
-                    output = userArgs + ": not found";
-                }
-            } else {
-                output = cmd + ": command not found";
-            }
+            String output = getOutput(input, cmd, userArgs);
 
             System.out.println(output);
         }
     }
 
-    private static String getUserArgs(String[] parts) {
+    private static String getOutput(String input, String cmd, String userArgs) {
+        String output ="";
+        if (cmd.equals(EXIT)) {
+            return null;
+        } else if (cmd.equals(ECHO)) {
+            output = userArgs.replace("echo ", "");
+        } else if (cmd.equals(TYPE)) {
+            if (BUILT_IN_COMMANDS.contains(userArgs)) {
+                output = userArgs + " is a shell builtin";
+            } else if (!BUILT_IN_COMMANDS.contains(userArgs)) {
+                output = userArgs + ": not found";
+            }
+        } else {
+            output = cmd + ": command not found";
+        }
+        return output;
+    }
+
+    private static String getCmd(String input) {
+        String[] parts = input.split(" ", 2);
+        return parts[0];
+    }
+
+    private static String getUserArgs(String input) {
+        String[] parts = input.split(" ", 2);
         boolean hasArgs = parts.length > 1 && !parts[1].isBlank();
-        String userArgs = hasArgs ? parts[1] : "";
-        return userArgs;
+        return hasArgs ? parts[1] : "";
     }
 }
