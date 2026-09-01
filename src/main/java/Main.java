@@ -13,7 +13,7 @@ public class Main {
             }
             String output = switch (cmd) {
                 case "echo" -> input.replace("echo ", "");
-                default -> cmd +" :command not found";
+                default -> cmd +": command not found";
             };
 
             System.out.println(output);
