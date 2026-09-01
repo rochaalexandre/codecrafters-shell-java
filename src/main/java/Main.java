@@ -16,39 +16,39 @@ public class Main {
         while (true) {
             System.out.print("$ ");
             String input = scanner.nextLine();
-            String cmd = getCmd(input);
+            String command = getCommand(input);
             String userArgs = getUserArgs(input);
-            if (cmd.equals(EXIT)) {
+            if (command.equals(EXIT)) {
                 break;
             }
-            Optional<String> output = getOutput(input, cmd, userArgs);
+            Optional<String> output = getOutput(command, userArgs);
             output.ifPresent(System.out::println);
         }
     }
 
-    private static Optional<String> getOutput(String input, String cmd, String userArgs) throws Exception {
+    private static Optional<String> getOutput(String command, String userArgs) throws Exception {
         String output = null;
-        if (cmd.equals(ECHO)) {
+        if (command.equals(ECHO)) {
             output = userArgs.replace("echo ", "");
-        } else if (cmd.equals(TYPE)) {
+        } else if (command.equals(TYPE)) {
             output = getCommandType(userArgs);
         } else {
-            if (findExecutable(cmd).isPresent()) {
-               executeProgram(cmd, userArgs);
+            if (findExecutable(command).isPresent()) {
+               executeProgram(command, userArgs);
             } else {
-                output = cmd + ": command not found";
+                output = command + ": command not found";
             }
         }
         return Optional.ofNullable(output);
     }
 
-    private static void executeProgram(String cmd, String userArgs) throws Exception {
-        List<String> cmdList = new ArrayList<>();
-        cmdList.add(cmd);
+    private static void executeProgram(String command, String userArgs) throws Exception {
+        List<String> commandList = new ArrayList<>();
+        commandList.add(command);
         if (!userArgs.isBlank()) {
-            cmdList.addAll(Arrays.asList(userArgs.split(" ")));
+            commandList.addAll(Arrays.asList(userArgs.split(" ")));
         }
-        ProcessBuilder pb = new ProcessBuilder(cmdList);
+        ProcessBuilder pb = new ProcessBuilder(commandList);
         pb.directory(new File(System.getProperty("user.dir")));
         pb.inheritIO();
         try (Process proc = pb.start()) {
@@ -75,7 +75,7 @@ public class Main {
         return Optional.empty();
     }
 
-    private static String getCmd(String input) {
+    private static String getCommand(String input) {
         String[] parts = input.split(" ", 2);
         return parts[0];
     }
