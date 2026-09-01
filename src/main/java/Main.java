@@ -38,8 +38,7 @@ public class Main {
             if (BUILT_IN_COMMANDS.contains(userArgs)) {
                 output = userArgs + " is a shell builtin";
             } else {
-                Optional<Path> exe = findExecutable(userArgs);
-                output = exe.map(path -> userArgs + " is " + path).orElseGet(() -> userArgs + ": not found");
+                output = findExecutable(userArgs).map(path -> userArgs + " is " + path).orElseGet(() -> userArgs + ": not found");
             }
         } else {
             output = cmd + ": command not found";
