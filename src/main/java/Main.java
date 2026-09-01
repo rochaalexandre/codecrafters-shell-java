@@ -17,13 +17,17 @@ public class Main {
             String cmd = parts[0];
             String userArgs = getUserArgs(parts);
 
-            String output;
+            String output = "";
             if (input.equals(EXIT)) {
                 break;
             } else if (cmd.equals(ECHO)) {
                 output = input.replace("echo ", "");
-            } else if (cmd.equals(TYPE) && BUILT_IN_COMMANDS.contains(userArgs)) {
-                output = userArgs + " is a shell builtin";
+            } else if (cmd.equals(TYPE)) {
+                if (BUILT_IN_COMMANDS.contains(userArgs)) {
+                    output = userArgs + " is a shell builtin";
+                } else  if (!BUILT_IN_COMMANDS.contains(userArgs)) {
+                    output = userArgs + ": not found";
+                }
             } else {
                 output = cmd + ": command not found";
             }
