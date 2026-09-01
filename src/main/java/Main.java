@@ -6,6 +6,9 @@ public class Main {
         while (true) {
             System.out.print("$ ");
             String userCommand = scanner.nextLine();
+            if (userCommand.equals("exit")) {
+                break;
+            }
             System.out.printf("%s: command not found", userCommand);
             System.out.println();
         }
