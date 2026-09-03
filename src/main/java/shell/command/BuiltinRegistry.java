@@ -9,7 +9,7 @@ public class BuiltinRegistry {
     private final Map<String, Builtin> commandsMap = new HashMap<>();
 
     public BuiltinRegistry() {
-        List.of(new EchoBuiltin(), new PwdBuiltin(), new TypeBuiltin(this))
+        List.of(new EchoBuiltin(), new PwdBuiltin(), new TypeBuiltin(this), new CdBuiltin())
                 .forEach(b -> commandsMap.put(b.name(), b));
     }
 
