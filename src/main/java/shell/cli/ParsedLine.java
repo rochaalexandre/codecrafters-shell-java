@@ -1,3 +1,5 @@
+package shell.cli;
+
 /**
  * Result of splitting a raw input line into the command name and its argument string.
  *

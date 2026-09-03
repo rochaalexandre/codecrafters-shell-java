@@ -1,5 +1,10 @@
+package shell;
+
+import shell.cli.InputParser;
+import shell.cli.ParsedLine;
+import shell.env.PathResolver;
+
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;

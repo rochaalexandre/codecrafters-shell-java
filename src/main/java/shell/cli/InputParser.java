@@ -1,3 +1,5 @@
+package shell.cli;
+
 /**
  * Turns a raw input line into a {@link ParsedLine}.
  *
