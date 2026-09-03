@@ -2,26 +2,20 @@ package shell;
 
 import shell.cli.InputParser;
 import shell.cli.ParsedLine;
+import shell.command.Builtin;
+import shell.command.BuiltinRegistry;
 import shell.env.PathResolver;
 
 import java.io.File;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
-    public static final String ECHO = "echo";
     public static final String EXIT = "exit";
-    public static final String TYPE = "type";
-    public static final String PWD = "pwd";
-    public static final List<String> BUILT_IN_COMMANDS = List.of(ECHO, TYPE, EXIT, PWD);
 
     private static final InputParser PARSER = new InputParser();
     private static final PathResolver PATH_RESOLVER = new PathResolver();
+    private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry();
 
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
@@ -38,21 +32,16 @@ public class Main {
     }
 
     private static Optional<String> getOutput(ParsedLine line) throws Exception {
-        String output = null;
-        if (line.isCommand(ECHO)) {
-            output = line.args().replace("echo ", "");
-        } else if (line.isCommand(TYPE)) {
-            output = getCommandType(line.args());
-        } else if (line.isCommand(PWD)) {
-            output = Paths.get("").toAbsolutePath().normalize().toString();
-        } else {
-            if (PATH_RESOLVER.findExecutable(line.command()).isPresent()) {
-                executeProgram(line.command(), line.args());
-            } else {
-                output = line.command() + ": command not found";
-            }
+        Optional<Builtin> builtin = BUILTIN_REGISTRY.getBuiltin(line.command());
+        if (builtin.isPresent()) {
+            return builtin.get().run(line);
         }
-        return Optional.ofNullable(output);
+
+        if (PATH_RESOLVER.findExecutable(line.command()).isPresent()) {
+            executeProgram(line.command(), line.args());
+            return Optional.empty();
+        }
+        return Optional.of(line.command() + ": command not found");
     }
 
     private static void executeProgram(String command, String userArgs) throws Exception {
@@ -67,15 +56,5 @@ public class Main {
         try (Process proc = pb.start()) {
             proc.waitFor();
         }
-    }
-
-    private static String getCommandType(String userArgs) {
-        if (BUILT_IN_COMMANDS.contains(userArgs)) {
-            return userArgs + " is a shell builtin";
-        }
-
-        return PATH_RESOLVER.findExecutable(userArgs)
-                .map(path -> userArgs + " is " + path)
-                .orElseGet(() -> userArgs + ": not found");
     }
 }
