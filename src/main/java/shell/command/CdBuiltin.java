@@ -15,7 +15,19 @@ public class CdBuiltin implements Builtin {
 
     @Override
     public Optional<String> run(ParsedLine line) {
-        Path path = Paths.get(line.args());
+        Path path;
+        if (line.args().startsWith("./")) {
+            path = Paths.get(System.getProperty("user.dir"), line.args());
+        } else if (line.args().startsWith("../")) {
+            Path currentDir = Paths.get(System.getProperty("user.dir"));
+            for (String index : line.args().split("/")) {
+                currentDir = currentDir.getParent();
+            }
+            path = currentDir.getParent();
+        } else   {
+            path = Paths.get(line.args());
+        }
+
         if (Files.notExists(path)) {
             return Optional.of("cd: "+line.args()+": No such file or directory");
         } else {
