@@ -17,7 +17,7 @@ public class CdBuiltin implements Builtin {
     public Optional<String> run(ParsedLine line) {
         Path path = getPath(line.args());
         if (Files.notExists(path)) {
-            return Optional.of("cd: "+line.args()+": No such file or directory");
+            return Optional.of("cd: " + line.args() + ": No such file or directory");
         } else {
             System.setProperty("user.dir", path.toAbsolutePath().toString());
         }
@@ -25,12 +25,13 @@ public class CdBuiltin implements Builtin {
     }
 
     private static Path getPath(String args) {
-        Path path;
         if (args.startsWith("./") || args.startsWith("../")) {
-            path = Paths.get(System.getProperty("user.dir"), args);
-        } else   {
-            path = Paths.get(args);
+            return Paths.get(System.getProperty("user.dir"), args);
         }
-        return path;
+        if (args.equals("~")) {
+            String homePath = System.getenv("HOME");
+            return Paths.get(homePath);
+        }
+        return Paths.get(args);
     }
 }
