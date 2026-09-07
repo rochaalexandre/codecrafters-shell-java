@@ -22,8 +22,9 @@ public class TypeBuiltin implements Builtin {
     }
 
     @Override
-    public Optional<String> run(ParsedLine line) {
-        return Optional.of(getCommandType(line.args()));
+    public int run(ParsedLine line, ExecContext context) {
+        context.out().println(getCommandType(line.args()));
+        return 0;
     }
 
     private String getCommandType(String userArgs) {

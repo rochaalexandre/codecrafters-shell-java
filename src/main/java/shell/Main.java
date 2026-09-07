@@ -4,10 +4,12 @@ import shell.cli.InputParser;
 import shell.cli.ParsedLine;
 import shell.command.Builtin;
 import shell.command.BuiltinRegistry;
+import shell.command.ExecContext;
 import shell.env.PathResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -30,16 +32,7 @@ public class Main {
                 break;
             }
 
-            Optional<String> output = getOutput(line);
-            if (output.isEmpty()) {
-                continue;
-            }
-
-            if (line.hasStdoutRedirect()) {
-                redirectOutputToFile(line, output.get());
-            } else {
-                System.out.println(output.get());
-            }
+            getOutput(line).ifPresent(System.out::println);
 
         }
     }
@@ -47,7 +40,9 @@ public class Main {
     private static Optional<String> getOutput(ParsedLine line) throws Exception {
         Optional<Builtin> builtin = BUILTIN_REGISTRY.getBuiltin(line.command());
         if (builtin.isPresent()) {
-            return builtin.get().run(line);
+            PrintStream outputStream = getOutputStream(line);
+            builtin.get().run(line,  new ExecContext(outputStream));
+            return Optional.empty();
         }
 
         if (PATH_RESOLVER.findExecutable(line.command()).isPresent()) {
@@ -79,14 +74,15 @@ public class Main {
         }
     }
 
-    private static void redirectOutputToFile(ParsedLine line, String output) throws IOException {
-        Path filePath = Path.of(line.stdoutTarget());
-        if (filePath.getParent() != null) {
-            Files.createDirectories(filePath.getParent());
+    private static PrintStream getOutputStream(ParsedLine line) throws IOException {
+        PrintStream out = System.out;
+        if (line.hasStdoutRedirect()) {
+            Path p = Path.of(line.stdoutTarget());
+            if (p.getParent() != null) {
+                Files.createDirectories(p.getParent());
+            }
+            out = new PrintStream(Files.newOutputStream(p));
         }
-        if (Files.notExists(filePath)) {
-            Files.createFile(filePath);
-        }
-        Files.writeString(filePath, output + "\n");
+        return out;
     }
 }

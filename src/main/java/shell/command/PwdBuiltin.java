@@ -12,7 +12,13 @@ public class PwdBuiltin implements Builtin {
     }
 
     @Override
-    public Optional<String> run(ParsedLine line) {
-        return Optional.of(Paths.get(System.getProperty("user.dir")).toAbsolutePath().normalize().toString());
+    public int run(ParsedLine line, ExecContext context) {
+        String userDir = System.getProperty("user.dir");
+        context.out().println(getAbsolutPath(userDir));
+        return 0;
+    }
+
+    private static String getAbsolutPath(String userDir) {
+        return Paths.get(userDir).toAbsolutePath().normalize().toString();
     }
 }
