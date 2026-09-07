@@ -3,7 +3,6 @@ package shell.command;
 import shell.cli.ParsedLine;
 
 import java.nio.file.Paths;
-import java.util.Optional;
 
 public class PwdBuiltin implements Builtin {
     @Override

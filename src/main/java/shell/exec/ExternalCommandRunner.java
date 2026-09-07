@@ -1,7 +1,6 @@
 package shell.exec;
 
 import shell.cli.ParsedLine;
-import shell.command.ExecContext;
 
 import java.io.File;
 import java.io.IOException;

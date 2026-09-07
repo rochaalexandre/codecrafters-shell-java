@@ -5,7 +5,6 @@ import shell.cli.ParsedLine;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 public class CdBuiltin implements Builtin {
     @Override

@@ -3,8 +3,6 @@ package shell.command;
 import shell.cli.ParsedLine;
 import shell.env.PathResolver;
 
-import java.util.Optional;
-
 import static shell.Main.EXIT;
 
 public class TypeBuiltin implements Builtin {

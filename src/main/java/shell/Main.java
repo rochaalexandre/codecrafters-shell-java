@@ -9,10 +9,9 @@ import shell.env.PathResolver;
 import shell.exec.ExternalCommandRunner;
 
 import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Optional;
+import java.util.Scanner;
 
 public class Main {
 
@@ -41,26 +40,23 @@ public class Main {
     private static void dispatch(ParsedLine line) throws Exception {
         Optional<Builtin> builtin = BUILTIN_REGISTRY.getBuiltin(line.command());
         if (builtin.isPresent()) {
-            PrintStream outputStream = getOutputStream(line);
-            builtin.get().run(line,  new ExecContext(outputStream));
-            outputStream.close();
-        } else if (PATH_RESOLVER.findExecutable(line.command()).isPresent()) {
+            try(ExecContext context = getExecContext(line)) {
+                builtin.get().run(line, context);
+            }
+        }
+        else if (PATH_RESOLVER.findExecutable(line.command()).isPresent()) {
             EXTERNAL_COMMAND_RUNNER.run(line);
-        } else {
+        }
+        else {
             System.out.println(line.command() + ": command not found");
         }
     }
 
-
-    private static PrintStream getOutputStream(ParsedLine line) throws IOException {
-        PrintStream out = System.out;
+    private static ExecContext getExecContext(ParsedLine line) throws IOException {
         if (line.hasStdoutRedirect()) {
-            Path p = Path.of(line.stdoutTarget());
-            if (p.getParent() != null) {
-                Files.createDirectories(p.getParent());
-            }
-            out = new PrintStream(Files.newOutputStream(p));
+            return ExecContext.toFile(Path.of(line.stdoutTarget()));
         }
-        return out;
+
+        return ExecContext.console();
     }
 }

@@ -1,7 +1,5 @@
 package shell.cli;
 
-import java.util.Arrays;
-
 /**
  * Turns a raw input line into a {@link ParsedLine}.
  *
