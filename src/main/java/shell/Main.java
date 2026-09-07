@@ -7,6 +7,9 @@ import shell.command.BuiltinRegistry;
 import shell.env.PathResolver;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class Main {
@@ -26,8 +29,18 @@ public class Main {
             if (line.isCommand(EXIT)) {
                 break;
             }
+
             Optional<String> output = getOutput(line);
-            output.ifPresent(System.out::println);
+            if (output.isEmpty()) {
+                continue;
+            }
+
+            if (line.hasStdoutRedirect()) {
+                redirectOutputToFile(line, output.get());
+            } else {
+                System.out.println(output.get());
+            }
+
         }
     }
 
@@ -38,23 +51,42 @@ public class Main {
         }
 
         if (PATH_RESOLVER.findExecutable(line.command()).isPresent()) {
-            executeProgram(line.command(), line.args());
+            executeProgram(line.command(), line);
             return Optional.empty();
         }
         return Optional.of(line.command() + ": command not found");
     }
 
-    private static void executeProgram(String command, String userArgs) throws Exception {
+    private static void executeProgram(String command, ParsedLine line) throws Exception {
         List<String> commandList = new ArrayList<>();
         commandList.add(command);
+        String userArgs = line.args();
         if (!userArgs.isBlank()) {
             commandList.addAll(Arrays.asList(userArgs.split(" ")));
         }
         ProcessBuilder pb = new ProcessBuilder(commandList);
         pb.directory(new File(System.getProperty("user.dir")));
-        pb.inheritIO();
+        if (line.hasStdoutRedirect()) {
+            pb.redirectOutput(new File(line.stdoutTarget()));
+            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+            pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        }
+        else {
+            pb.inheritIO();
+        }
         try (Process proc = pb.start()) {
             proc.waitFor();
         }
+    }
+
+    private static void redirectOutputToFile(ParsedLine line, String output) throws IOException {
+        Path filePath = Path.of(line.stdoutTarget());
+        if (filePath.getParent() != null) {
+            Files.createDirectories(filePath.getParent());
+        }
+        if (Files.notExists(filePath)) {
+            Files.createFile(filePath);
+        }
+        Files.writeString(filePath, output + "\n");
     }
 }
