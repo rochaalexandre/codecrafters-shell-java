@@ -11,7 +11,7 @@ class InputParserTest {
 
     private final InputParser parser = new InputParser();
 
-    // --- existing behaviour: no redirect ---
+    // --- no redirect ---
 
     @Test
     void splitsCommandFromArgs() {
@@ -30,14 +30,16 @@ class InputParserTest {
     }
 
     @Test
-    void noRedirectLeavesStdoutTargetNull() {
+    void noRedirectLeavesStreamsNull() {
         ParsedLine line = parser.parse("echo hello");
 
-        assertNull(line.stdoutTarget());
+        assertNull(line.stdout());
+        assertNull(line.stderr());
         assertFalse(line.hasStdoutRedirect());
+        assertFalse(line.hasStderrRedirect());
     }
 
-    // --- redirection phase, stage 1: `>` / `1>` stdout to file ---
+    // --- stdout redirect: `>` / `1>` (truncate) ---
 
     @Test
     void parsesStdoutRedirectWithGtToken() {
@@ -45,7 +47,8 @@ class InputParserTest {
 
         assertEquals("echo", line.command());
         assertEquals("hello", line.args());
-        assertEquals("output.txt", line.stdoutTarget());
+        assertEquals("output.txt", line.stdout().target());
+        assertFalse(line.stdout().append());
         assertTrue(line.hasStdoutRedirect());
     }
 
@@ -55,7 +58,7 @@ class InputParserTest {
 
         assertEquals("echo", line.command());
         assertEquals("hello", line.args());
-        assertEquals("output.txt", line.stdoutTarget());
+        assertEquals("output.txt", line.stdout().target());
     }
 
     @Test
@@ -64,7 +67,7 @@ class InputParserTest {
 
         assertEquals("ls", line.command());
         assertEquals("", line.args());
-        assertEquals("out.txt", line.stdoutTarget());
+        assertEquals("out.txt", line.stdout().target());
     }
 
     @Test
@@ -73,6 +76,50 @@ class InputParserTest {
 
         assertEquals("ls", line.command());
         assertEquals("-1 /tmp", line.args());
-        assertEquals("out.txt", line.stdoutTarget());
+        assertEquals("out.txt", line.stdout().target());
+    }
+
+    // --- stderr redirect: `2>` (truncate) --- bit 2, currently RED ---
+
+    @Test
+    void parsesStderrRedirect() {
+        ParsedLine line = parser.parse("ls /nope 2> err.txt");
+
+        assertEquals("ls", line.command());
+        assertEquals("/nope", line.args());
+        assertEquals("err.txt", line.stderr().target());
+        assertFalse(line.stderr().append());
+        assertTrue(line.hasStderrRedirect());
+        assertNull(line.stdout());
+    }
+
+    @Test
+    void stdoutAndStderrRedirectOnSameLine() {
+        ParsedLine line = parser.parse("ls /nope > out.txt 2> err.txt");
+
+        assertEquals("ls", line.command());
+        assertEquals("/nope", line.args());
+        assertEquals("out.txt", line.stdout().target());
+        assertEquals("err.txt", line.stderr().target());
+    }
+
+    // --- append: `>>` / `2>>` --- later bit, currently RED ---
+
+    @Test
+    void parsesStdoutAppend() {
+        ParsedLine line = parser.parse("echo hi >> log.txt");
+
+        assertEquals("echo", line.command());
+        assertEquals("hi", line.args());
+        assertEquals("log.txt", line.stdout().target());
+        assertTrue(line.stdout().append());
+    }
+
+    @Test
+    void parsesStderrAppend() {
+        ParsedLine line = parser.parse("ls /nope 2>> log.txt");
+
+        assertEquals("log.txt", line.stderr().target());
+        assertTrue(line.stderr().append());
     }
 }

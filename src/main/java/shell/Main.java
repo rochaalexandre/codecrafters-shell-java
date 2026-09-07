@@ -5,6 +5,7 @@ import shell.cli.ParsedLine;
 import shell.command.Builtin;
 import shell.command.BuiltinRegistry;
 import shell.command.ExecContext;
+import shell.command.Stream;
 import shell.env.PathResolver;
 import shell.exec.ExternalCommandRunner;
 
@@ -53,10 +54,12 @@ public class Main {
     }
 
     private static ExecContext getExecContext(ParsedLine line) throws IOException {
-        if (line.hasStdoutRedirect()) {
-            return ExecContext.toFile(Path.of(line.stdoutTarget()));
-        }
-
-        return ExecContext.console();
+        Stream out = line.hasStdoutRedirect()
+                ? Stream.toFile(Path.of(line.stdout().target()), line.stdout().append())
+                : Stream.console(System.out);
+        Stream err = line.hasStderrRedirect()
+                ? Stream.toFile(Path.of(line.stderr().target()), line.stderr().append())
+                : Stream.console(System.err);
+        return new ExecContext(out, err);
     }
 }

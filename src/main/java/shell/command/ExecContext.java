@@ -1,59 +1,40 @@
 package shell.command;
 
-import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
- * Where a command sends its output. {@code Main} picks the destination (terminal or file),
- * hands this to the command, and the command just writes to {@link #out()} without caring
- * where it goes.
+ * Where a running command sends its output. {@code Main} builds one from two {@link Stream}s
+ * (stdout, stderr); the command just writes to {@link #out()} / {@link #err()} without caring
+ * where they go.
  *
- * <p>{@link #close()} closes the stream only when we opened it ({@link #toFile}); it never
- * closes {@link System#out} ({@link #console}), which belongs to the JVM. Use it in
- * try-with-resources so the file gets flushed.
- *
- * <p>Next bit: a second stream for stderr ({@code type nope 2> err}).
+ * <p>This class only composes the streams. Each {@link Stream} knows whether it is a terminal
+ * or a file and how to clean itself up, so {@link #close()} is just "close both". Use in
+ * try-with-resources so any file streams get flushed.
  */
 public final class ExecContext implements AutoCloseable {
 
-    private final PrintStream out;
+    private final Stream out;
+    private final Stream err;
 
-    /** {@code true} if this object opened {@link #out} and is responsible for closing it. */
-    private final boolean ownsOut;
-
-    private ExecContext(PrintStream out, boolean ownsOut) {
+    public ExecContext(Stream out, Stream err) {
         this.out = out;
-        this.ownsOut = ownsOut;
-    }
-
-    /** Output goes to the terminal. The stream is {@link System#out} and is never closed. */
-    public static ExecContext console() {
-        return new ExecContext(System.out, false);
-    }
-
-    /**
-     * Output goes to {@code target}, truncating any existing file. Missing parent directories
-     * are created. The returned context owns the file stream — close it (try-with-resources).
-     */
-    public static ExecContext toFile(Path target) throws IOException {
-        if (target.getParent() != null) {
-            Files.createDirectories(target.getParent());
-        }
-        return new ExecContext(new PrintStream(Files.newOutputStream(target)), true);
+        this.err = err;
     }
 
     /** The stream the running command writes its normal output to. */
     public PrintStream out() {
-        return out;
+        return out.stream();
     }
 
-    /** Closes the output stream only if this context opened it (a file); a no-op for the terminal. */
+    /** The stream the running command writes its error output to. */
+    public PrintStream err() {
+        return err.stream();
+    }
+
+    /** Closes both streams. Each is a no-op unless it owns a file. */
     @Override
     public void close() {
-        if (ownsOut) {
-            out.close();
-        }
+        out.close();
+        err.close();
     }
 }

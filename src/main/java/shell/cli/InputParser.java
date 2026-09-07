@@ -1,5 +1,8 @@
 package shell.cli;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Turns a raw input line into a {@link ParsedLine}.
  *
@@ -8,6 +11,8 @@ package shell.cli;
  * in the shell needs to learn about tokenization.
  */
 public final class InputParser {
+    /** fd (group 1: "", "1", "2") + operator (group 2: ">" or ">>") + target (group 3). */
+    private static final Pattern REDIRECT_PATTERN = Pattern.compile("([12]?)(>>?)\\s*(\\S+)");
 
     public ParsedLine parse(String input) {
         String[] parts = input.split(" ", 2);
@@ -16,12 +21,28 @@ public final class InputParser {
             return new ParsedLine(command, "");
         }
 
-        String part = parts[1];
-        boolean appendRedirect = part.contains(">>") || part.contains("<<");
-        String[] halves = part.split("\\s*1?>\\s*", 2);
-        String args = halves[0].trim();
-        return halves.length == 2
-                ? new ParsedLine(command, args, halves[1].trim(), appendRedirect)
-                : new ParsedLine(command, args);
+        String rest = parts[1];
+        Matcher matcher = REDIRECT_PATTERN.matcher(rest);
+        String args = rest;
+        Redirect stdout = null;
+        Redirect stderr = null;
+
+        boolean firstMatch = true;
+        while (matcher.find()) {
+            if (firstMatch) {
+                args = rest.substring(0, matcher.start()).trim();
+                firstMatch = false;
+            }
+            String fd = matcher.group(1); // "", "1", or "2"
+            Redirect r = new Redirect(matcher.group(3), matcher.group(2).equals(">>"));
+
+            if (fd.equals("2")) {
+                stderr = r;
+            } else {
+                stdout = r;  // "" or "1" both mean stdout
+            }
+        }
+
+        return new ParsedLine(command, args, stdout, stderr);
     }
 }
