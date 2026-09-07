@@ -4,13 +4,10 @@ import shell.cli.InputParser;
 import shell.cli.ParsedLine;
 import shell.command.Builtin;
 import shell.command.BuiltinRegistry;
-import shell.command.ExecContext;
-import shell.command.Stream;
+import shell.io.ExecContext;
 import shell.env.PathResolver;
 import shell.exec.ExternalCommandRunner;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -34,14 +31,13 @@ public class Main {
             }
 
             dispatch(line);
-
         }
     }
 
     private static void dispatch(ParsedLine line) throws Exception {
         Optional<Builtin> builtin = BUILTIN_REGISTRY.getBuiltin(line.command());
         if (builtin.isPresent()) {
-            try(ExecContext context = getExecContext(line)) {
+            try (ExecContext context = ExecContext.from(line)) {
                 builtin.get().run(line, context);
             }
         }
@@ -51,15 +47,5 @@ public class Main {
         else {
             System.out.println(line.command() + ": command not found");
         }
-    }
-
-    private static ExecContext getExecContext(ParsedLine line) throws IOException {
-        Stream out = line.hasStdoutRedirect()
-                ? Stream.toFile(Path.of(line.stdout().target()), line.stdout().append())
-                : Stream.console(System.out);
-        Stream err = line.hasStderrRedirect()
-                ? Stream.toFile(Path.of(line.stderr().target()), line.stderr().append())
-                : Stream.console(System.err);
-        return new ExecContext(out, err);
     }
 }

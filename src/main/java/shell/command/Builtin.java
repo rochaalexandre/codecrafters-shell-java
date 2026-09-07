@@ -1,6 +1,7 @@
 package shell.command;
 
 import shell.cli.ParsedLine;
+import shell.io.ExecContext;
 
 public interface Builtin {
     String name();

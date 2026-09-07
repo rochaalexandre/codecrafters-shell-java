@@ -2,6 +2,7 @@ package shell.command;
 
 import shell.cli.ParsedLine;
 import shell.env.PathResolver;
+import shell.io.ExecContext;
 
 import static shell.Main.EXIT;
 
