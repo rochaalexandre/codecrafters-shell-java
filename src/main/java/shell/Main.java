@@ -4,6 +4,7 @@ import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.DefaultParser;
+import org.jline.reader.impl.completer.AggregateCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -48,10 +49,12 @@ public class Main {
     }
 
     private static LineReader buildReader(Terminal terminal) {
+        Completer aggregateCompleter = new AggregateCompleter(getBuiltinCompleter(), getExtermaCompleter());
+
         return LineReaderBuilder
                 .builder()
                 .parser(getDefaultParser())
-                .completer(getBuiltinCompleter())
+                .completer(aggregateCompleter)
                 .terminal(terminal).build();
     }
 
@@ -62,8 +65,13 @@ public class Main {
     }
 
     private static Completer getBuiltinCompleter() {
-        // Complete with dynamic strings
         Collection<String> dynamicStrings = Main.BUILTIN_REGISTRY.listAvailableCommands();
+        return new StringsCompleter(dynamicStrings);
+    }
+
+    private static Completer getExtermaCompleter() {
+        // Complete with dynamic strings
+        Collection<String> dynamicStrings = Main.PATH_RESOLVER.listAvailableCommands();
         return new StringsCompleter(dynamicStrings);
     }
 }

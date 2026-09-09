@@ -29,17 +29,17 @@ public class CommandDispatch {
 
     public void dispatch(ParsedLine line) throws IOException {
         Optional<Builtin> builtin = builtinRegistry.getBuiltin(line.command());
-        if (builtin.isPresent()) {
-            try (ExecContext context = ExecContext.from(line)) {
+        try (ExecContext context = ExecContext.from(line)) {
+            if (builtin.isPresent()) {
                 builtin.get().run(line, context);
             }
-        }
-        else {
-            if (pathResolver.findExecutable(line.command()).isPresent()) {
-                externalRunner.run(line);
-            }
             else {
-                System.out.println(line.command() + ": command not found");
+                if (pathResolver.findExecutable(line.command()).isPresent()) {
+                    externalRunner.run(line);
+                }
+                else {
+                    context.out().println(line.command() + ": command not found");
+                }
             }
         }
     }
