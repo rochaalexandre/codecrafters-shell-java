@@ -9,11 +9,11 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import shell.cli.InputParser;
 import shell.cli.ParsedLine;
-import shell.command.Builtin;
-import shell.command.BuiltinRegistry;
+import shell.command.builtin.Builtin;
+import shell.command.builtin.BuiltinRegistry;
 import shell.io.ExecContext;
 import shell.env.PathResolver;
-import shell.exec.ExternalCommandRunner;
+import shell.command.exec.ExternalCommandRunner;
 
 import java.io.IOException;
 import java.util.Collection;

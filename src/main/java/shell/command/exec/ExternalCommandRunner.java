@@ -1,4 +1,4 @@
-package shell.exec;
+package shell.command.exec;
 
 import shell.cli.ParsedLine;
 import shell.cli.Redirect;

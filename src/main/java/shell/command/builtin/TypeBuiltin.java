@@ -1,10 +1,10 @@
-package shell.command;
+package shell.command.builtin;
 
 import shell.cli.ParsedLine;
 import shell.env.PathResolver;
 import shell.io.ExecContext;
 
-import static shell.command.BuiltinRegistry.EXIT;
+import static shell.command.builtin.BuiltinRegistry.EXIT;
 
 public class TypeBuiltin implements Builtin {
 

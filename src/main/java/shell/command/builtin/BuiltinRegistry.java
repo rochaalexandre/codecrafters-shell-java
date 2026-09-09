@@ -1,4 +1,4 @@
-package shell.command;
+package shell.command.builtin;
 
 import shell.env.PathResolver;
 
