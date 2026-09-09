@@ -24,19 +24,10 @@ public class Main {
     private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY);
 
     public static void main(String[] args) {
-        try {
-            // Create a terminal
-            Terminal terminal = TerminalBuilder.builder().system(true).build();
-
+        try (Terminal terminal = TerminalBuilder.builder().system(true).build()){
             // Create a line reader
-            LineReader reader = LineReaderBuilder
-                    .builder()
-                    .parser(getDefaultParser())
-                    .completer(getBuiltinCompleter(BUILTIN_REGISTRY))
-                    .terminal(terminal).build();
+            LineReader reader = buildReader(terminal);
             replLoop(reader, terminal);
-
-            terminal.close();
         } catch (IOException e) {
             System.err.println("Error creating terminal: " + e.getMessage());
         }
@@ -56,15 +47,23 @@ public class Main {
         }
     }
 
+    private static LineReader buildReader(Terminal terminal) {
+        return LineReaderBuilder
+                .builder()
+                .parser(getDefaultParser())
+                .completer(getBuiltinCompleter())
+                .terminal(terminal).build();
+    }
+
     private static DefaultParser getDefaultParser() {
         DefaultParser parser = new DefaultParser();
         parser.setEscapeChars(null);
         return parser;
     }
 
-    public static Completer getBuiltinCompleter(BuiltinRegistry builtinRegistry) {
+    private static Completer getBuiltinCompleter() {
         // Complete with dynamic strings
-        Collection<String> dynamicStrings = builtinRegistry.listAvailableCommands();
+        Collection<String> dynamicStrings = Main.BUILTIN_REGISTRY.listAvailableCommands();
         return new StringsCompleter(dynamicStrings);
     }
 }
