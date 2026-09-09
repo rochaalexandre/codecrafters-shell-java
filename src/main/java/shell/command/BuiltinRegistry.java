@@ -1,15 +1,23 @@
 package shell.command;
 
+import shell.env.PathResolver;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class BuiltinRegistry {
+
+    /** Handled directly by the read loop rather than a {@link Builtin} — it breaks the loop. */
+    public static final String EXIT = "exit";
+
     private final Map<String, Builtin> commandsMap = new HashMap<>();
 
-    public BuiltinRegistry() {
-        List.of(new EchoBuiltin(), new PwdBuiltin(), new TypeBuiltin(this), new CdBuiltin())
+    public BuiltinRegistry(PathResolver pathResolver) {
+        List.of(new EchoBuiltin(), new PwdBuiltin(),
+                        new TypeBuiltin(this, pathResolver), new CdBuiltin())
                 .forEach(b -> commandsMap.put(b.name(), b));
     }
 
@@ -19,5 +27,10 @@ public class BuiltinRegistry {
 
     public Optional<Builtin> getBuiltin(String command) {
         return Optional.ofNullable(commandsMap.get(command));
+    }
+
+    public List<String> listAvailableCommands() {
+        return Stream.concat(commandsMap.keySet().stream(), Stream.of(EXIT))
+                .toList();
     }
 }

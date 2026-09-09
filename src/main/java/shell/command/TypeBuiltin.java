@@ -4,15 +4,16 @@ import shell.cli.ParsedLine;
 import shell.env.PathResolver;
 import shell.io.ExecContext;
 
-import static shell.Main.EXIT;
+import static shell.command.BuiltinRegistry.EXIT;
 
 public class TypeBuiltin implements Builtin {
-    private static final PathResolver PATH_RESOLVER = new PathResolver();
 
     private final BuiltinRegistry registry;
+    private final PathResolver pathResolver;
 
-    public TypeBuiltin(BuiltinRegistry registry) {
+    public TypeBuiltin(BuiltinRegistry registry, PathResolver pathResolver) {
         this.registry = registry;
+        this.pathResolver = pathResolver;
     }
 
     @Override
@@ -31,7 +32,7 @@ public class TypeBuiltin implements Builtin {
             return userArgs + " is a shell builtin";
         }
 
-        return PATH_RESOLVER.findExecutable(userArgs)
+        return pathResolver.findExecutable(userArgs)
                 .map(path -> userArgs + " is " + path)
                 .orElseGet(() -> userArgs + ": not found");
     }
