@@ -1,8 +1,6 @@
 package shell;
 
-import org.jline.reader.Completer;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.*;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.completer.AggregateCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
@@ -14,6 +12,7 @@ import shell.command.CommandDispatch;
 import shell.command.builtin.BuiltinRegistry;
 import shell.env.PathResolver;
 
+import java.io.IOError;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -36,15 +35,19 @@ public class Main {
 
     private static void replLoop(LineReader reader, Terminal terminal) throws IOException {
         while (true) {
-            String input = reader.readLine("$ ");
-            ParsedLine line = PARSER.parse(input);
+            try {
+                String input = reader.readLine("$ ");
+                ParsedLine line = PARSER.parse(input);
 
-            if (line.isCommand(BuiltinRegistry.EXIT)) {
+                if (line.isCommand(BuiltinRegistry.EXIT)) {
+                    break;
+                }
+
+                DISPATCH.dispatch(line);
+                terminal.flush();
+            } catch (UserInterruptException | EndOfFileException | IOError e) {
                 break;
             }
-
-            DISPATCH.dispatch(line);
-            terminal.flush();
         }
     }
 
@@ -54,7 +57,7 @@ public class Main {
         return LineReaderBuilder
                 .builder()
                 .parser(getDefaultParser())
-                .completer(aggregateCompleter)
+                .completer(new BashStyleCompleter(aggregateCompleter))
                 .terminal(terminal).build();
     }
 
