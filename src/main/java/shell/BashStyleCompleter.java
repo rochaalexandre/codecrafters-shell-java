@@ -8,11 +8,13 @@ import org.jline.reader.ParsedLine;
 import java.util.*;
 
 public final class BashStyleCompleter implements Completer {
-    private final Completer delegate;
+    private final Completer commandCompleter;
+    private final Completer fileAndDirectoryCompleter;
     private String pendingWord;   // the word we already beeped once for
 
-    public BashStyleCompleter(Completer delegate) {
-        this.delegate = delegate;
+    public BashStyleCompleter(Completer delegate, Completer fileAndDirectoryCompleter) {
+        this.commandCompleter = delegate;
+        this.fileAndDirectoryCompleter = fileAndDirectoryCompleter;
     }
 
     @Override
@@ -42,7 +44,14 @@ public final class BashStyleCompleter implements Completer {
 
     private List<Candidate> getCandidateList(LineReader reader, ParsedLine line) {
         List<Candidate> matched = new ArrayList<>();
-        delegate.complete(reader, line, matched);
+
+        //only run one set of completer at timec
+        boolean isFileOrDirComplete = line.wordIndex() > 0;
+        if (isFileOrDirComplete) {
+            fileAndDirectoryCompleter.complete(reader, line,  matched);
+        } else  {
+            commandCompleter.complete(reader, line, matched);
+        }
         // filter to what actually matches line.word() — StringsCompleter returns ALL of them
         matched.removeIf(c -> !c.value().startsWith(line.word()));
         // filter duplicate values like  Builtin echo + /usr/bin/echo on PATH.

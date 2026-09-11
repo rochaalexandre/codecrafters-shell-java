@@ -54,19 +54,28 @@ public class Main {
     }
 
     private static LineReader buildReader(Terminal terminal) {
-        Completer aggregateCompleter = new AggregateCompleter(getBuiltinCompleter(), getExtermaCompleter(), getFileCompleter());
+        Completer commandCompleter = buildCommandCompleter();
+        Completer dirAndFileCompleter = buildDirAndFileCompleter();
 
         return LineReaderBuilder
                 .builder()
                 .parser(getDefaultParser())
-                .completer(new BashStyleCompleter(aggregateCompleter))
+                .completer(new BashStyleCompleter(commandCompleter, dirAndFileCompleter))
                 .terminal(terminal).build();
     }
+
 
     private static DefaultParser getDefaultParser() {
         DefaultParser parser = new DefaultParser();
         parser.setEscapeChars(null);
         return parser;
+    }
+    private static AggregateCompleter buildCommandCompleter() {
+        return new AggregateCompleter(getBuiltinCompleter(), getExternalCommandCompleter());
+    }
+
+    private static AggregateCompleter buildDirAndFileCompleter() {
+        return new AggregateCompleter(getFileCompleter(), getDirectoryCompleter());
     }
 
     private static Completer getBuiltinCompleter() {
@@ -74,7 +83,7 @@ public class Main {
         return new StringsCompleter(dynamicStrings);
     }
 
-    private static Completer getExtermaCompleter() {
+    private static Completer getExternalCommandCompleter() {
         // Complete with dynamic strings
         Collection<String> dynamicStrings = Main.PATH_RESOLVER.listAvailableCommands();
         return new StringsCompleter(dynamicStrings);
@@ -84,5 +93,8 @@ public class Main {
         return new Completers.FilesCompleter(Paths.get("."));
     }
 
+    private static Completer getDirectoryCompleter() {
+        return new Completers.DirectoriesCompleter(Paths.get("."));
+    }
 
 }
