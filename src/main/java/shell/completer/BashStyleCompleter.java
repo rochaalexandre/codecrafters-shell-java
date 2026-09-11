@@ -1,4 +1,4 @@
-package shell;
+package shell.completer;
 
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
