@@ -1,5 +1,6 @@
 package shell;
 
+import org.jline.builtins.Completers;
 import org.jline.reader.*;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.completer.AggregateCompleter;
@@ -14,6 +15,7 @@ import shell.env.PathResolver;
 
 import java.io.IOError;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 
 public class Main {
@@ -52,7 +54,7 @@ public class Main {
     }
 
     private static LineReader buildReader(Terminal terminal) {
-        Completer aggregateCompleter = new AggregateCompleter(getBuiltinCompleter(), getExtermaCompleter());
+        Completer aggregateCompleter = new AggregateCompleter(getBuiltinCompleter(), getExtermaCompleter(), getFileCompleter());
 
         return LineReaderBuilder
                 .builder()
@@ -77,4 +79,10 @@ public class Main {
         Collection<String> dynamicStrings = Main.PATH_RESOLVER.listAvailableCommands();
         return new StringsCompleter(dynamicStrings);
     }
+
+    private static Completer getFileCompleter() {
+        return new Completers.FilesCompleter(Paths.get("."));
+    }
+
+
 }
