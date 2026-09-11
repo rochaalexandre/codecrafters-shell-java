@@ -45,7 +45,7 @@ public final class BashStyleCompleter implements Completer {
     private List<Candidate> getCandidateList(LineReader reader, ParsedLine line) {
         List<Candidate> matched = new ArrayList<>();
 
-        //only run one set of completer at timec
+        //only run one set of completer at time
         boolean isFileOrDirComplete = line.wordIndex() > 0;
         if (isFileOrDirComplete) {
             fileAndDirectoryCompleter.complete(reader, line,  matched);
