@@ -59,6 +59,7 @@ public class Main {
                 .builder()
                 .parser(getDefaultParser())
                 .completer(new BashStyleCompleter(commandCompleter, dirAndFileCompleter))
+                .option(LineReader.Option.AUTO_REMOVE_SLASH,  false)
                 .terminal(terminal).build();
     }
 
