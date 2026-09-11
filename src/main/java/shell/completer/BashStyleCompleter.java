@@ -36,7 +36,7 @@ public final class BashStyleCompleter implements Completer {
             // second TAB: list
             String names = matched.stream().map(Candidate::value).sorted()
                     .collect(java.util.stream.Collectors.joining("  "));
-            reader.printAbove("$ " + line.word());
+            reader.printAbove("$ " + line.line());
             reader.printAbove(names);
             pendingWord = null;
         }
