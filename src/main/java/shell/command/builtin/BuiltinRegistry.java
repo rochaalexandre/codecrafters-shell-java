@@ -30,7 +30,11 @@ public class BuiltinRegistry {
     }
 
     public List<String> listAvailableCommands() {
-        return Stream.concat(commandsMap.keySet().stream(), Stream.of(EXIT))
-                .toList();
+        Stream<String> names = Stream.concat(commandsMap.keySet().stream(), Stream.of(EXIT));
+        if (System.getenv("LOCAL_TEST") != null) {
+            // fake commands for exercising completion locally — never present on CodeCrafters
+//            names = Stream.concat(names, Stream.of("xyz_owl", "xyz_owl_dog", "xyz_owl_dog_fox"));
+        }
+        return names.toList();
     }
 }

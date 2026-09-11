@@ -18,8 +18,12 @@ public final class BashStyleCompleter implements Completer {
     @Override
     public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
         List<Candidate> matched = getCandidateList(reader, line);
+        Optional<String> commonPrefix = longestCommonPrefix(line, matched);
 
         if (matched.size() <= 1) {          // unique or none: normal behaviour
+            candidates.addAll(matched);
+            pendingWord = null;
+        } else if (commonPrefix.isPresent()) {   // ambiguous, but LCP extends past what's typed: insert it
             candidates.addAll(matched);
             pendingWord = null;
         }
@@ -44,4 +48,37 @@ public final class BashStyleCompleter implements Completer {
         // filter duplicate values like  Builtin echo + /usr/bin/echo on PATH.
         return matched.stream().distinct().toList();
     }
+
+
+    /**
+     * Longest common prefix of the candidates' values, if it extends past what's already typed.
+     * Empty if there's no overlap, or the overlap is just the typed word itself (fully ambiguous).
+     *
+     * @see <a href="https://algomaster.io/learn/dsa/longest-common-prefix">Longest Common Prefix</a>
+     */
+    public Optional<String> longestCommonPrefix(ParsedLine line, List<Candidate> candidates) {
+        if (candidates == null || candidates.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Sort so first and last strings are most different
+        ArrayList<Candidate> shortedList = new ArrayList<>(candidates);
+        shortedList.sort(Comparator.comparing(Candidate::value));
+
+        Candidate first = shortedList.getFirst();
+        Candidate last = shortedList.getLast();
+
+        int i = 0;
+        int limit = Math.min(first.value().length(), last.value().length());
+        // sorted first/last are the most different pair; walk while they still agree char-by-char
+        while (i < limit && first.value().charAt(i) == last.value().charAt(i)) {
+            i++;
+        }
+
+        String commonPrefix = first.value().substring(0, i);
+        boolean isNotTheTypedWord = commonPrefix.isEmpty() || commonPrefix.equals(line.word());
+
+        return isNotTheTypedWord ? Optional.empty() : Optional.of(commonPrefix);
+     }
+
 }
