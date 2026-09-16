@@ -28,7 +28,7 @@ public class TypeBuiltin implements Builtin {
     }
 
     private String getCommandType(String userArgs) {
-        if (registry.isBuiltin(userArgs) || EXIT.equals(userArgs) || "complete".equals(userArgs)) {
+        if (registry.isBuiltin(userArgs) || EXIT.equals(userArgs)) {
             return userArgs + " is a shell builtin";
         }
 
