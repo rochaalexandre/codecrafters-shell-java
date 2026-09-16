@@ -36,14 +36,11 @@ public final class CustomCommandCompleter implements Completer {
         String currentWord = parsedLine.word();
         String previousWord = (wordIdx >= 2) ? parsedLine.words().get(wordIdx - 1) : "";
 
-        System.setProperty("COMP_LINE", parsedLine.line());
-        System.setProperty("COMP_POINT", String.valueOf(parsedLine.wordIndex()));
-
         ProcessBuilder processBuilder = new ProcessBuilder(path, command, currentWord, previousWord);
         processBuilder.redirectErrorStream(false);
         Map<String, String> env = processBuilder.environment();
         env.put("COMP_LINE", parsedLine.line());
-        env.put("COMP_POINT", String.valueOf(parsedLine.wordIndex()));
+        env.put("COMP_POINT", String.valueOf(parsedLine.line().length()));
         try (Process process = processBuilder.start()) {
             process.waitFor();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
