@@ -23,14 +23,19 @@ public final class CustomCommandCompleter implements Completer {
         List<Candidate> matched = new ArrayList<>();
         String targetCommand = line.words().getFirst();
         if (completerRegistry.containsCompletion(targetCommand)) {
-            runScript(completerRegistry.getCompletion(targetCommand), matched);
+            runScript(completerRegistry.getCompletion(targetCommand), line, matched);
             matched.removeIf(c -> !c.value().startsWith(line.word()));
             candidates.addAll(matched);
         }
     }
 
-    private void runScript(String path, List<Candidate> candidates) {
-        ProcessBuilder processBuilder = new ProcessBuilder(path);
+    private void runScript(String path, ParsedLine parsedLine, List<Candidate> candidates) {
+        int wordIdx = parsedLine.wordIndex();
+        String command = parsedLine.words().getFirst();
+        String currentWord = parsedLine.word();
+        String previousWord = (wordIdx >= 2) ? parsedLine.words().get(wordIdx - 1) : "";
+
+        ProcessBuilder processBuilder = new ProcessBuilder(path, command, currentWord, previousWord);
         processBuilder.redirectErrorStream(false);
         try (Process process = processBuilder.start()) {
             process.waitFor();
