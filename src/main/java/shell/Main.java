@@ -8,6 +8,7 @@ import shell.cli.InputParser;
 import shell.cli.ParsedLine;
 import shell.command.CommandDispatch;
 import shell.command.builtin.BuiltinRegistry;
+import shell.command.completer.CompleterRegistry;
 import shell.completer.BashStyleCompleter;
 import shell.completer.CompleterFactory;
 import shell.env.PathResolver;
@@ -19,9 +20,10 @@ public class Main {
 
     private static final InputParser PARSER = new InputParser();
     private static final PathResolver PATH_RESOLVER = new PathResolver();
-    private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry(PATH_RESOLVER);
+    private static final CompleterRegistry COMPLETER_REGISTRY = new CompleterRegistry();
+    private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry(PATH_RESOLVER, COMPLETER_REGISTRY);
     private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY);
-    private static final CompleterFactory COMPLETER_FACTORY = new CompleterFactory(PATH_RESOLVER, BUILTIN_REGISTRY);
+    private static final CompleterFactory COMPLETER_FACTORY = new CompleterFactory(PATH_RESOLVER, BUILTIN_REGISTRY, COMPLETER_REGISTRY);
 
     public static void main(String[] args) {
         try (Terminal terminal = TerminalBuilder.builder().system(true).build()){
@@ -54,11 +56,12 @@ public class Main {
     private static LineReader buildReader(Terminal terminal) {
         Completer commandCompleter = COMPLETER_FACTORY.buildCommandCompleter();
         Completer dirAndFileCompleter = COMPLETER_FACTORY.buildDirAndFileCompleter();
+        Completer customCommandCompleter = COMPLETER_FACTORY.buildCustomCommandCompleter();
 
         return LineReaderBuilder
                 .builder()
                 .parser(getDefaultParser())
-                .completer(new BashStyleCompleter(commandCompleter, dirAndFileCompleter))
+                .completer(new BashStyleCompleter(commandCompleter, dirAndFileCompleter, customCommandCompleter))
                 .option(LineReader.Option.AUTO_REMOVE_SLASH,  false)
                 .terminal(terminal).build();
     }

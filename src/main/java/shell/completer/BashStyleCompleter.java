@@ -10,11 +10,13 @@ import java.util.*;
 public final class BashStyleCompleter implements Completer {
     private final Completer commandCompleter;
     private final Completer fileAndDirectoryCompleter;
+    private final Completer customCommandCompleter;
     private String pendingWord;   // the word we already beeped once for
 
-    public BashStyleCompleter(Completer delegate, Completer fileAndDirectoryCompleter) {
+    public BashStyleCompleter(Completer delegate, Completer fileAndDirectoryCompleter, Completer customCommandCompleter) {
         this.commandCompleter = delegate;
         this.fileAndDirectoryCompleter = fileAndDirectoryCompleter;
+        this.customCommandCompleter = customCommandCompleter;
     }
 
     @Override
@@ -25,7 +27,8 @@ public final class BashStyleCompleter implements Completer {
         if (matched.size() <= 1) {          // unique or none: normal behaviour
             candidates.addAll(matched);
             pendingWord = null;
-        } else if (commonPrefix.isPresent()) {   // ambiguous, but LCP extends past what's typed: insert it
+        }
+        else if (commonPrefix.isPresent()) {   // ambiguous, but LCP extends past what's typed: insert it
             candidates.addAll(matched);
             pendingWord = null;
         }
@@ -45,13 +48,19 @@ public final class BashStyleCompleter implements Completer {
     private List<Candidate> getCandidateList(LineReader reader, ParsedLine line) {
         List<Candidate> matched = new ArrayList<>();
 
-        //only run one set of completer at time
-        boolean isFileOrDirComplete = line.wordIndex() > 0;
-        if (isFileOrDirComplete) {
-            fileAndDirectoryCompleter.complete(reader, line,  matched);
-        } else  {
-            commandCompleter.complete(reader, line, matched);
+        customCommandCompleter.complete(reader, line, matched);
+        // run other completers if a custom one is fond
+        if (matched.isEmpty()) {
+            //only run one set of completer at time
+            boolean isFileOrDirComplete = line.wordIndex() > 0;
+            if (isFileOrDirComplete) {
+                fileAndDirectoryCompleter.complete(reader, line, matched);
+            }
+            else {
+                commandCompleter.complete(reader, line, matched);
+            }
         }
+
         // filter to what actually matches line.word() — StringsCompleter returns ALL of them
         matched.removeIf(c -> !c.value().startsWith(line.word()));
         // filter duplicate values like  Builtin echo + /usr/bin/echo on PATH.
@@ -88,6 +97,6 @@ public final class BashStyleCompleter implements Completer {
         boolean isNotTheTypedWord = commonPrefix.isEmpty() || commonPrefix.equals(line.word());
 
         return isNotTheTypedWord ? Optional.empty() : Optional.of(commonPrefix);
-     }
+    }
 
 }

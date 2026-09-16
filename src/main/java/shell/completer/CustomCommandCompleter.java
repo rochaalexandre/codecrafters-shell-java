@@ -1,0 +1,45 @@
+package shell.completer;
+
+import org.jline.reader.Candidate;
+import org.jline.reader.Completer;
+import org.jline.reader.LineReader;
+import org.jline.reader.ParsedLine;
+import shell.command.completer.CompleterRegistry;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public final class CustomCommandCompleter implements Completer {
+    private final CompleterRegistry completerRegistry;
+
+    public CustomCommandCompleter(CompleterRegistry completerRegistry) {
+        this.completerRegistry = completerRegistry;
+    }
+
+    @Override
+    public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
+        List<Candidate> matched = new ArrayList<>();
+        if (completerRegistry.containsCompletion(line.word())) {
+            runScript(completerRegistry.getCompletion(line.word()), matched);
+            matched.removeIf(c -> !c.value().startsWith(line.word()));
+            candidates.addAll(matched);
+        }
+    }
+
+    private void runScript(String path, List<Candidate> candidates) {
+        ProcessBuilder processBuilder = new ProcessBuilder(path);
+        processBuilder.redirectErrorStream(false);
+        try (Process process = processBuilder.start()) {
+            process.waitFor();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                candidates.add(new Candidate(line, line, null, null, null, null, true));
+            }
+        } catch (Exception e) {
+            //silent crash
+        }
+    }
+}
