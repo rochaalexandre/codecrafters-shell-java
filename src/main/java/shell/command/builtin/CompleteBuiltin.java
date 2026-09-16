@@ -11,7 +11,7 @@ public class CompleteBuiltin implements Builtin {
 
     @Override
     public int run(ParsedLine line, ExecContext context) {
-        String command = line.args().replace("-p", "");
+        String command = line.args().replace("-p", "").trim();
 
         context.out().printf("complete: %s: no completion specification", command);
         return 0;
