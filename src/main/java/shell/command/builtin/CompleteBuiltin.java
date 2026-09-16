@@ -13,7 +13,7 @@ public class CompleteBuiltin implements Builtin {
     public int run(ParsedLine line, ExecContext context) {
         String command = line.args().replace("-p", "").trim();
 
-        context.out().printf("complete: %s: no completion specification", command);
+        context.out().printf("complete: %s: no completion specification\n", command);
         return 0;
     }
 }
