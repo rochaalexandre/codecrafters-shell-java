@@ -21,8 +21,9 @@ public final class CustomCommandCompleter implements Completer {
     @Override
     public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
         List<Candidate> matched = new ArrayList<>();
-        if (completerRegistry.containsCompletion(line.word())) {
-            runScript(completerRegistry.getCompletion(line.word()), matched);
+        String targetCommand = line.words().getFirst();
+        if (completerRegistry.containsCompletion(targetCommand)) {
+            runScript(completerRegistry.getCompletion(targetCommand), matched);
             matched.removeIf(c -> !c.value().startsWith(line.word()));
             candidates.addAll(matched);
         }
