@@ -34,7 +34,7 @@ public class CompleteBuiltin implements Builtin {
             registerCompleter(args);
         }
         else if (args.trim().startsWith("-r ")) {
-            registerCompleter(args);
+            removeCompleter(args);
         }
         return 0;
     }
@@ -56,7 +56,7 @@ public class CompleteBuiltin implements Builtin {
         }
     }
 
-    private void removeCompleter(ExecContext context, String args) {
+    private void removeCompleter(String args) {
         String command = args.replace("-r", "").trim();
         if (registry.containsCompletion(command)) {
             registry.removeCompletion(command);
