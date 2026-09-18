@@ -26,40 +26,22 @@ public class CompleteBuiltin implements Builtin {
         if (line.args() == null) {
             return 0;
         }
-        String args = line.args().strip();
-        if (args.trim().startsWith("-p ")) {
-            executeDisplayOption(context, args);
-        }
-        else if (args.trim().startsWith("-C ")) {
-            registerCompleter(args);
-        }
-        else if (args.trim().startsWith("-r ")) {
-            removeCompleter(args);
+        String[] tokens = line.args().strip().split("\\s+");
+        String command = tokens[tokens.length - 1];
+        switch (tokens[0]) {
+            case "-p" -> executeDisplayOption(context, command);
+            case "-C" -> registry.registerCompletion(command, tokens[1]);
+            case "-r" -> registry.removeCompletion(command);
         }
         return 0;
     }
 
-    private void registerCompleter(String args) {
-        String[] split = args.trim().split("\\s+");
-        String command = split[split.length - 1].trim();
-        String path = split[1].trim();
-        registry.registerCompletion(command, path);
-    }
-
-    private void executeDisplayOption(ExecContext context, String args) {
-        String command = args.replace("-p", "").trim();
+    private void executeDisplayOption(ExecContext context, String command) {
         if (registry.containsCompletion(command)) {
             context.out().printf("complete -C '%s' %s\n", registry.getCompletion(command), command);
         }
         else {
             context.out().printf("complete: %s: no completion specification\n", command);
-        }
-    }
-
-    private void removeCompleter(String args) {
-        String command = args.replace("-r", "").trim();
-        if (registry.containsCompletion(command)) {
-            registry.removeCompletion(command);
         }
     }
 }
