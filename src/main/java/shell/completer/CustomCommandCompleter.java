@@ -36,11 +36,7 @@ public final class CustomCommandCompleter implements Completer {
         String currentWord = parsedLine.word();
         String previousWord = (wordIdx >= 1) ? parsedLine.words().get(wordIdx - 1) : "";
 
-        ProcessBuilder processBuilder = new ProcessBuilder(path, command, currentWord, previousWord);
-        processBuilder.redirectErrorStream(false);
-        Map<String, String> env = processBuilder.environment();
-        env.put("COMP_LINE", parsedLine.line());
-        env.put("COMP_POINT", String.valueOf(parsedLine.line().length()));
+        ProcessBuilder processBuilder = createProcessBuilder(path, parsedLine, command, currentWord, previousWord);
 
         try (Process process = processBuilder.start()) {
             process.waitFor();
@@ -52,5 +48,14 @@ public final class CustomCommandCompleter implements Completer {
         } catch (Exception e) {
             //silent crash
         }
+    }
+
+    private static ProcessBuilder createProcessBuilder(String path, ParsedLine parsedLine, String command, String currentWord, String previousWord) {
+        ProcessBuilder processBuilder = new ProcessBuilder(path, command, currentWord, previousWord);
+        processBuilder.redirectErrorStream(false);
+        Map<String, String> env = processBuilder.environment();
+        env.put("COMP_LINE", parsedLine.line());
+        env.put("COMP_POINT", String.valueOf(parsedLine.line().length()));
+        return processBuilder;
     }
 }

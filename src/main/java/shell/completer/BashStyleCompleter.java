@@ -24,7 +24,7 @@ public final class BashStyleCompleter implements Completer {
         List<Candidate> matched = getCandidateList(reader, line);
         Optional<String> commonPrefix = longestCommonPrefix(line, matched);
 
-        if (matched.size() <= 1) {          // unique or none: normal behaviour
+        if (matched.size() <= 1) {          // unique or none: normal behavior
             candidates.addAll(matched);
             pendingWord = null;
         }
