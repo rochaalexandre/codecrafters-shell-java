@@ -29,7 +29,11 @@ public class CompleteBuiltin implements Builtin {
         String args = line.args().strip();
         if (args.trim().startsWith("-p ")) {
             executeDisplayOption(context, args);
-        } else if (args.trim().startsWith("-C ")) {
+        }
+        else if (args.trim().startsWith("-C ")) {
+            registerCompleter(args);
+        }
+        else if (args.trim().startsWith("-r ")) {
             registerCompleter(args);
         }
         return 0;
@@ -37,7 +41,7 @@ public class CompleteBuiltin implements Builtin {
 
     private void registerCompleter(String args) {
         String[] split = args.trim().split("\\s+");
-        String command = split[split.length-1].trim();
+        String command = split[split.length - 1].trim();
         String path = split[1].trim();
         registry.registerCompletion(command, path);
     }
@@ -46,8 +50,16 @@ public class CompleteBuiltin implements Builtin {
         String command = args.replace("-p", "").trim();
         if (registry.containsCompletion(command)) {
             context.out().printf("complete -C '%s' %s\n", registry.getCompletion(command), command);
-        } else {
+        }
+        else {
             context.out().printf("complete: %s: no completion specification\n", command);
+        }
+    }
+
+    private void removeCompleter(ExecContext context, String args) {
+        String command = args.replace("-r", "").trim();
+        if (registry.containsCompletion(command)) {
+            registry.removeCompletion(command);
         }
     }
 }

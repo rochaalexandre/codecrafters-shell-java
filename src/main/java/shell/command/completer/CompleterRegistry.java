@@ -15,6 +15,10 @@ public class CompleterRegistry {
         completions.put(targetCommand, completion);
     }
 
+    public void removeCompletion(String targetCommand) {
+        completions.remove(targetCommand);
+    }
+
     public boolean containsCompletion(String targetCommand) {
         return completions.containsKey(targetCommand);
     }
