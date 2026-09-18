@@ -34,9 +34,9 @@ public final class CustomCommandCompleter implements Completer {
         int wordIdx = parsedLine.wordIndex();
         String command = parsedLine.words().getFirst();
         String currentWord = parsedLine.word();
-        String previousWord = (wordIdx >= 2) ? parsedLine.words().get(wordIdx - 1) : "";
-
+        String previousWord = (wordIdx >= 1) ? parsedLine.words().get(wordIdx - 1) : "";
         ProcessBuilder processBuilder = new ProcessBuilder(path, command, currentWord, previousWord);
+
         processBuilder.redirectErrorStream(false);
         Map<String, String> env = processBuilder.environment();
         env.put("COMP_LINE", parsedLine.line());
@@ -49,7 +49,7 @@ public final class CustomCommandCompleter implements Completer {
                 candidates.add(new Candidate(line, line, null, null, null, null, true));
             }
         } catch (Exception e) {
-            //silent crash
+            e.printStackTrace();
         }
     }
 }
