@@ -11,6 +11,24 @@ import java.util.List;
 
 public class ExternalCommandRunner {
     public int run(ParsedLine line) {
+        ProcessBuilder pb = getProcessBuilder(line);
+        try (Process proc = pb.start()) {
+            return proc.waitFor();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Process runInBackground(ParsedLine line) {
+        try  {
+            ProcessBuilder pb = getProcessBuilder(line);
+            return pb.start();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static ProcessBuilder getProcessBuilder(ParsedLine line) {
         List<String> commandList = new ArrayList<>();
         commandList.add(line.command());
         String userArgs = line.args();
@@ -22,12 +40,9 @@ public class ExternalCommandRunner {
         pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
         pb.redirectOutput(target(line.stdout()));
         pb.redirectError(target(line.stderr()));
-        try (Process proc = pb.start()) {
-            return proc.waitFor();
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return pb;
     }
+
 
     /** A file destination for {@code redirect}, or the parent terminal when it is {@code null}. */
     private static ProcessBuilder.Redirect target(Redirect redirect) {

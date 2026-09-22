@@ -10,10 +10,10 @@ package shell.cli;
  *
  * <p>{@code stdout} / {@code stderr} are {@code null} when that stream is not redirected.
  */
-public record ParsedLine(String command, String args, Redirect stdout, Redirect stderr) {
+public record ParsedLine(String command, String args, Redirect stdout, Redirect stderr, boolean runInBackground) {
 
-    public ParsedLine(String command, String args) {
-        this(command, args, null, null);
+    public ParsedLine(String command, String args, boolean runInBackground) {
+        this(command, args, null, null, runInBackground);
     }
 
     public boolean isCommand(String name) {
@@ -26,5 +26,9 @@ public record ParsedLine(String command, String args, Redirect stdout, Redirect 
 
     public boolean hasStderrRedirect() {
         return stderr != null;
+    }
+
+    public boolean runInBackground() {
+        return runInBackground;
     }
 }

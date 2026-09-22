@@ -15,10 +15,11 @@ public final class InputParser {
     private static final Pattern REDIRECT_PATTERN = Pattern.compile("([12]?)(>>?)\\s*(\\S+)");
 
     public ParsedLine parse(String input) {
-        String[] parts = input.split(" ", 2);
+        boolean isBackgroundCommand = input.trim().endsWith("&");
+        String[] parts = input.replace("&", "").split(" ", 2);
         String command = parts[0];
         if (parts.length < 2 || parts[1].isBlank()) {
-            return new ParsedLine(command, "");
+            return new ParsedLine(command, "", isBackgroundCommand);
         }
 
         String rest = parts[1];
@@ -43,6 +44,6 @@ public final class InputParser {
             }
         }
 
-        return new ParsedLine(command, args, stdout, stderr);
+        return new ParsedLine(command, args, stdout, stderr, isBackgroundCommand);
     }
 }
