@@ -5,7 +5,7 @@ import shell.command.builtin.Builtin;
 import shell.command.builtin.BuiltinRegistry;
 import shell.command.exec.ExternalCommandRunner;
 import shell.command.job.Job;
-import shell.command.job.JobRegistry;
+import shell.command.job.JobManager;
 import shell.env.PathResolver;
 import shell.io.ExecContext;
 
@@ -18,17 +18,17 @@ public class CommandDispatch {
     private final PathResolver pathResolver;
     private final ExternalCommandRunner externalRunner;
     private final BuiltinRegistry builtinRegistry;
-    private final JobRegistry jobRegistry;
+    private final JobManager jobManager;
 
-    public CommandDispatch(PathResolver pathResolver, BuiltinRegistry builtinRegistry, JobRegistry registry) {
+    public CommandDispatch(PathResolver pathResolver, BuiltinRegistry builtinRegistry, JobManager registry) {
         this(pathResolver, new ExternalCommandRunner(), builtinRegistry, registry);
     }
 
-    public CommandDispatch(PathResolver pathResolver, ExternalCommandRunner externalRunner, BuiltinRegistry builtinRegistry, JobRegistry jobRegistry) {
+    public CommandDispatch(PathResolver pathResolver, ExternalCommandRunner externalRunner, BuiltinRegistry builtinRegistry, JobManager jobManager) {
         this.pathResolver = pathResolver;
         this.externalRunner = externalRunner;
         this.builtinRegistry = builtinRegistry;
-        this.jobRegistry = jobRegistry;
+        this.jobManager = jobManager;
     }
 
     public void dispatch(ParsedLine line) throws IOException {
@@ -46,7 +46,7 @@ public class CommandDispatch {
                 command = command.concat(" ").concat(line.args());
             }
 
-            Job job = jobRegistry.add(process, command);
+            Job job = jobManager.add(process, command);
             context.out().printf("[%s] %s%n", job.number(), job.pid());
             return;
         }

@@ -25,6 +25,10 @@ public final class ExecContext implements AutoCloseable {
         this.err = err;
     }
 
+    public static ExecContext defaultContext() {
+        return new ExecContext(Stream.console(System.out), Stream.console(System.err));
+    }
+
     /**
      * Builds a context from a parsed line: a redirected stream goes to its file (truncating or
      * appending per {@code >} / {@code >>}), an unredirected one stays on the terminal.

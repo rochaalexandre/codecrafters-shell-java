@@ -1,7 +1,7 @@
 package shell.command.builtin;
 
 import shell.command.completer.CompleterRegistry;
-import shell.command.job.JobRegistry;
+import shell.command.job.JobManager;
 import shell.env.PathResolver;
 
 import java.util.HashMap;
@@ -17,10 +17,10 @@ public class BuiltinRegistry {
 
     private final Map<String, Builtin> commandsMap = new HashMap<>();
 
-    public BuiltinRegistry(PathResolver pathResolver, CompleterRegistry completerRegistry, JobRegistry jobRegistry) {
+    public BuiltinRegistry(PathResolver pathResolver, CompleterRegistry completerRegistry, JobManager jobManager) {
         List.of(new EchoBuiltin(), new PwdBuiltin(),
                         new TypeBuiltin(this, pathResolver), new CdBuiltin(),
-                        new CompleteBuiltin(completerRegistry), new JobBuiltin(jobRegistry))
+                        new CompleteBuiltin(completerRegistry), new JobBuiltin(jobManager))
                 .forEach(b -> commandsMap.put(b.name(), b));
     }
 
