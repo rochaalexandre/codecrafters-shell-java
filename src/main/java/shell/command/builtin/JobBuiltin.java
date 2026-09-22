@@ -32,18 +32,19 @@ public class JobBuiltin implements Builtin {
     }
 
     /**
-     * When multiple commands run in the background, the jobs command lists them in the order they were started.
+     * Returns marker for job at index {@code i} in jobs listing.
+     * <p>
+     * Jobs run in the order started, numbered sequentially ([1], [2], ...).
+     * Markers flag special jobs:
+     * <ul>
+     *     <li>{@code +} - most recently started job (the "current" job)</li>
+     *     <li>{@code -} - second most recently started job (the "previous" job)</li>
+     *     <li>{@code ""} - all other jobs</li>
+     * </ul>
      *
-     * Job numbers are assigned sequentially: the first background job is [1], the next is [2], and so on.
-     *
-     * The shell uses markers to indicate special jobs:
-     *
-     * + - The most recently started job (the "current" job)
-     * - - The second most recently started job (the "previous" job)
-     * Space () - All other jobs
-     * @param i
-     * @param listSize
-     * @return
+     * @param i index of job in list
+     * @param listSize total number of jobs in list
+     * @return marker string for job at index {@code i}
      */
     private static String getMarker(int i, int listSize) {
         if (i == listSize - 1) {
