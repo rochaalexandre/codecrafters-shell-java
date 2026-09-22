@@ -6,7 +6,7 @@ import shell.io.ExecContext;
 public class JobBuiltin implements Builtin {
     @Override
     public String name() {
-        return "job";
+        return "jobs";
     }
 
     @Override
