@@ -24,15 +24,27 @@ public class JobBuiltin implements Builtin {
         List<Job> jobList = registry.list();
         for (int i = 0; i < jobList.size(); i++) {
             Job job = jobList.get(i);
-            String marker = getMarker(i, jobList.size());
-            context.out().printf("[%s]%s  %s                 %s &%n", job.number(), marker, job.status(), job.commandLine().trim());
+            printConsoleMessage(context, job, jobList.size());
+            checkFinishedJobs(job);
         }
 
         return 0;
     }
 
+    private void checkFinishedJobs(Job job) {
+        if (job.isFinished()) {
+            registry.remove(job);
+        }
+    }
+
+    private static void printConsoleMessage(ExecContext context, Job job, int listSize) {
+        String marker = getMarker(job.number(), listSize);
+        String backgroundMarker = job.isFinished() ? "" :"&";
+        context.out().printf("[%s]%s  %s                 %s %s%n", job.number(), marker, job.status(), job.commandLine().trim(), backgroundMarker);
+    }
+
     /**
-     * Returns marker for job at index {@code i} in jobs listing.
+     * Returns marker for job at index {@code jobIndex} in jobs listing.
      * <p>
      * Jobs run in the order started, numbered sequentially ([1], [2], ...).
      * Markers flag special jobs:
@@ -42,15 +54,16 @@ public class JobBuiltin implements Builtin {
      *     <li>{@code ""} - all other jobs</li>
      * </ul>
      *
-     * @param i index of job in list
+     * @param jobIndex        index of job in list
      * @param listSize total number of jobs in list
-     * @return marker string for job at index {@code i}
+     * @return marker string for job at index {@code jobIndex}
      */
-    private static String getMarker(int i, int listSize) {
-        if (i == listSize - 1) {
-           return "+";
-        } else  if (i == listSize - 2) {
-            return  "-";
+    private static String getMarker(int jobIndex, int listSize) {
+        if (jobIndex == listSize) {
+            return "+";
+        }
+        else if (jobIndex == listSize - 1) {
+            return "-";
         }
         return "";
     }

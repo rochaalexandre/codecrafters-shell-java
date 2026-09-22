@@ -9,4 +9,8 @@ public record Job(int number, Process process, String commandLine)
     public String status() {
         return process.isAlive() ? "Running" : "Done";
     }
+
+    public boolean isFinished() {
+        return !process.isAlive();
+    }
 }
