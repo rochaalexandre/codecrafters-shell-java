@@ -24,7 +24,7 @@ public class JobBuiltin implements Builtin {
         List<Job> jobList = registry.list();
         for (int i = 0; i < jobList.size(); i++) {
             Job job = jobList.get(i);
-            printConsoleMessage(context, job, jobList.size());
+            printConsoleMessage(context, job, i, jobList.size());
             checkFinishedJobs(job);
         }
 
@@ -37,10 +37,10 @@ public class JobBuiltin implements Builtin {
         }
     }
 
-    private static void printConsoleMessage(ExecContext context, Job job, int listSize) {
-        String marker = getMarker(job.number(), listSize);
+    private static void printConsoleMessage(ExecContext context, Job job, int index, int listSize) {
+        String marker = getMarker(index, listSize);
         String backgroundMarker = job.isFinished() ? "" :"&";
-        context.out().printf("[%s]%s  %s                 %s %s", job.number(), marker, job.status(), job.commandLine().trim(), backgroundMarker);
+        context.out().printf("[%s]%s  %s                 %s %s%n", job.number(), marker, job.status(), job.commandLine().trim(), backgroundMarker);
     }
 
     /**
@@ -59,10 +59,10 @@ public class JobBuiltin implements Builtin {
      * @return marker string for job at index {@code jobIndex}
      */
     private static String getMarker(int jobIndex, int listSize) {
-        if (jobIndex == listSize) {
+        if (jobIndex == listSize - 1) {
             return "+";
         }
-        else if (jobIndex == listSize - 1) {
+        else if (jobIndex == listSize - 2) {
             return "-";
         }
         return "";

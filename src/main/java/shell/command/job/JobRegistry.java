@@ -14,7 +14,7 @@ public class JobRegistry {
     }
 
     public List<Job> list() {
-        return jobs;
+        return jobs.stream().toList();
     }
 
     public void remove(Job job) {
