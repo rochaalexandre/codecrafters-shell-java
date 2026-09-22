@@ -40,7 +40,7 @@ public class JobBuiltin implements Builtin {
     private static void printConsoleMessage(ExecContext context, Job job, int listSize) {
         String marker = getMarker(job.number(), listSize);
         String backgroundMarker = job.isFinished() ? "" :"&";
-        context.out().printf("[%s]%s  %s                 %s %s%n", job.number(), marker, job.status(), job.commandLine().trim(), backgroundMarker);
+        context.out().printf("[%s]%s  %s                 %s %s", job.number(), marker, job.status(), job.commandLine().trim(), backgroundMarker);
     }
 
     /**
