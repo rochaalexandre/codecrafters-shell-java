@@ -20,8 +20,8 @@ public class CommandDispatch {
     private final BuiltinRegistry builtinRegistry;
     private final JobRegistry jobRegistry;
 
-    public CommandDispatch(PathResolver pathResolver, BuiltinRegistry builtinRegistry) {
-        this(pathResolver, new ExternalCommandRunner(), builtinRegistry, new JobRegistry());
+    public CommandDispatch(PathResolver pathResolver, BuiltinRegistry builtinRegistry, JobRegistry registry) {
+        this(pathResolver, new ExternalCommandRunner(), builtinRegistry, registry);
     }
 
     public CommandDispatch(PathResolver pathResolver, ExternalCommandRunner externalRunner, BuiltinRegistry builtinRegistry, JobRegistry jobRegistry) {
@@ -40,7 +40,13 @@ public class CommandDispatch {
     private void dispatch(ParsedLine line, ExecContext context) {
         if (line.runInBackground()) {
             Process process = externalRunner.runInBackground(line);
-            Job job = jobRegistry.add(process, line.command());
+
+            String command = line.command();
+            if (line.args() != null && !line.args().isEmpty() ) {
+                command = command.concat(" ").concat(line.args());
+            }
+
+            Job job = jobRegistry.add(process, command);
             context.out().printf("[%s] %s%n", job.number(), job.pid());
             return;
         }

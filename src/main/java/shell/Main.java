@@ -9,6 +9,7 @@ import shell.cli.ParsedLine;
 import shell.command.CommandDispatch;
 import shell.command.builtin.BuiltinRegistry;
 import shell.command.completer.CompleterRegistry;
+import shell.command.job.JobRegistry;
 import shell.completer.BashStyleCompleter;
 import shell.completer.CompleterFactory;
 import shell.env.PathResolver;
@@ -20,9 +21,10 @@ public class Main {
 
     private static final InputParser PARSER = new InputParser();
     private static final PathResolver PATH_RESOLVER = new PathResolver();
+    private static final JobRegistry JOB_REGISTRY = new JobRegistry();
     private static final CompleterRegistry COMPLETER_REGISTRY = new CompleterRegistry();
-    private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry(PATH_RESOLVER, COMPLETER_REGISTRY);
-    private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY);
+    private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry(PATH_RESOLVER, COMPLETER_REGISTRY, JOB_REGISTRY);
+    private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY, JOB_REGISTRY);
     private static final CompleterFactory COMPLETER_FACTORY = new CompleterFactory(PATH_RESOLVER, BUILTIN_REGISTRY, COMPLETER_REGISTRY);
 
     public static void main(String[] args) {
