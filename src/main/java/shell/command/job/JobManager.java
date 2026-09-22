@@ -25,15 +25,15 @@ public class JobManager {
 
     public void checkAndReapJobs(ExecContext context) {
         List<Job> jobList = this.list();
-        for (int i = 0; i < jobList.size(); i++) {
-            Job job = jobList.get(i);
-            printConsoleMessage(context, job, i, jobList.size());
-            checkFinishedJobs(job);
-        }
+        reapAndPrint(context, jobList);
     }
 
     public void checkCompletedJobs(ExecContext context) {
         List<Job> jobList = this.list().stream().filter(Job::isFinished).toList();
+        reapAndPrint(context, jobList);
+    }
+
+    private void reapAndPrint(ExecContext context, List<Job> jobList) {
         for (int i = 0; i < jobList.size(); i++) {
             Job job = jobList.get(i);
             printConsoleMessage(context, job, i, jobList.size());
