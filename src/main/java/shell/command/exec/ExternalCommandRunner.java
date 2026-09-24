@@ -28,7 +28,7 @@ public class ExternalCommandRunner {
         }
     }
 
-    private static ProcessBuilder getProcessBuilder(ParsedLine line) {
+    public static ProcessBuilder getProcessBuilder(ParsedLine line) {
         List<String> commandList = new ArrayList<>();
         commandList.add(line.command());
         String userArgs = line.args();

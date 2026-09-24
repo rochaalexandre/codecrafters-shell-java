@@ -1,10 +1,11 @@
 package shell.cli;
 
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Turns a raw input line into a {@link ParsedLine}.
+ * Turns a raw input line into a {@link Pipeline} of {@link ParsedLine} stages.
  *
  * <p>Today this is a naive split on the first space. This is the single place quoting,
  * escaping and whitespace handling will live once those phases arrive, so nothing else
@@ -14,7 +15,18 @@ public final class InputParser {
     /** fd (group 1: "", "1", "2") + operator (group 2: ">" or ">>") + target (group 3). */
     private static final Pattern REDIRECT_PATTERN = Pattern.compile("([12]?)(>>?)\\s*(\\S+)");
 
-    public ParsedLine parse(String input) {
+    /**
+     * Splits on {@code |} into stages. Naive: a {@code |} inside quotes would split too;
+     * revisit when the quoting phase lands.
+     */
+    public Pipeline parse(String input) {
+        return new Pipeline(Arrays.stream(input.split("\\|"))
+                .map(String::strip)
+                .map(this::parseStage)
+                .toList());
+    }
+
+    private ParsedLine parseStage(String input) {
         boolean isBackgroundCommand = input.trim().endsWith("&");
         String[] parts = input.replace("&", "").split(" ", 2);
         String command = parts[0];

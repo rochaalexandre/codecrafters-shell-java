@@ -5,7 +5,7 @@ import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import shell.cli.InputParser;
-import shell.cli.ParsedLine;
+import shell.cli.Pipeline;
 import shell.command.CommandDispatch;
 import shell.command.builtin.BuiltinRegistry;
 import shell.command.completer.CompleterRegistry;
@@ -44,13 +44,13 @@ public class Main {
                 JOB_MANAGER.checkCompletedJobs(context);
 
                 String input = reader.readLine("$ ");
-                ParsedLine line = PARSER.parse(input);
+                Pipeline pipeline = PARSER.parse(input);
 
-                if (line.isCommand(BuiltinRegistry.EXIT)) {
+                if (pipeline.isCommand(BuiltinRegistry.EXIT)) {
                     break;
                 }
 
-                DISPATCH.dispatch(line);
+                DISPATCH.dispatch(pipeline);
                 terminal.flush();
             } catch (UserInterruptException | EndOfFileException | IOError e) {
                 break;

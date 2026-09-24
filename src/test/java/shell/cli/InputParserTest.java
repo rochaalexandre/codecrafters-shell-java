@@ -11,11 +11,15 @@ class InputParserTest {
 
     private final InputParser parser = new InputParser();
 
+    private ParsedLine parseSingle(String input) {
+        return parser.parse(input).stages().getFirst();
+    }
+
     // --- no redirect ---
 
     @Test
     void splitsCommandFromArgs() {
-        ParsedLine line = parser.parse("echo hello world");
+        ParsedLine line = parseSingle("echo hello world");
 
         assertEquals("echo", line.command());
         assertEquals("hello world", line.args());
@@ -23,7 +27,7 @@ class InputParserTest {
 
     @Test
     void commandWithNoArgs() {
-        ParsedLine line = parser.parse("pwd");
+        ParsedLine line = parseSingle("pwd");
 
         assertEquals("pwd", line.command());
         assertEquals("", line.args());
@@ -31,7 +35,7 @@ class InputParserTest {
 
     @Test
     void noRedirectLeavesStreamsNull() {
-        ParsedLine line = parser.parse("echo hello");
+        ParsedLine line = parseSingle("echo hello");
 
         assertNull(line.stdout());
         assertNull(line.stderr());
@@ -43,7 +47,7 @@ class InputParserTest {
 
     @Test
     void parsesStdoutRedirectWithGtToken() {
-        ParsedLine line = parser.parse("echo hello > output.txt");
+        ParsedLine line = parseSingle("echo hello > output.txt");
 
         assertEquals("echo", line.command());
         assertEquals("hello", line.args());
@@ -54,7 +58,7 @@ class InputParserTest {
 
     @Test
     void parsesStdoutRedirectWith1GtToken() {
-        ParsedLine line = parser.parse("echo hello 1> output.txt");
+        ParsedLine line = parseSingle("echo hello 1> output.txt");
 
         assertEquals("echo", line.command());
         assertEquals("hello", line.args());
@@ -63,7 +67,7 @@ class InputParserTest {
 
     @Test
     void redirectWithNoArgsBeforeIt() {
-        ParsedLine line = parser.parse("ls > out.txt");
+        ParsedLine line = parseSingle("ls > out.txt");
 
         assertEquals("ls", line.command());
         assertEquals("", line.args());
@@ -72,7 +76,7 @@ class InputParserTest {
 
     @Test
     void externalCommandWithArgsAndRedirect() {
-        ParsedLine line = parser.parse("ls -1 /tmp > out.txt");
+        ParsedLine line = parseSingle("ls -1 /tmp > out.txt");
 
         assertEquals("ls", line.command());
         assertEquals("-1 /tmp", line.args());
@@ -83,7 +87,7 @@ class InputParserTest {
 
     @Test
     void parsesStderrRedirect() {
-        ParsedLine line = parser.parse("ls /nope 2> err.txt");
+        ParsedLine line = parseSingle("ls /nope 2> err.txt");
 
         assertEquals("ls", line.command());
         assertEquals("/nope", line.args());
@@ -95,7 +99,7 @@ class InputParserTest {
 
     @Test
     void stdoutAndStderrRedirectOnSameLine() {
-        ParsedLine line = parser.parse("ls /nope > out.txt 2> err.txt");
+        ParsedLine line = parseSingle("ls /nope > out.txt 2> err.txt");
 
         assertEquals("ls", line.command());
         assertEquals("/nope", line.args());
@@ -107,7 +111,7 @@ class InputParserTest {
 
     @Test
     void parsesStdoutAppend() {
-        ParsedLine line = parser.parse("echo hi >> log.txt");
+        ParsedLine line = parseSingle("echo hi >> log.txt");
 
         assertEquals("echo", line.command());
         assertEquals("hi", line.args());
@@ -117,9 +121,31 @@ class InputParserTest {
 
     @Test
     void parsesStderrAppend() {
-        ParsedLine line = parser.parse("ls /nope 2>> log.txt");
+        ParsedLine line = parseSingle("ls /nope 2>> log.txt");
 
         assertEquals("log.txt", line.stderr().target());
         assertTrue(line.stderr().append());
+    }
+
+    // --- pipelines ---
+
+    @Test
+    void singleCommandIsOneStagePipeline() {
+        Pipeline pipeline = parser.parse("echo hello");
+
+        assertEquals(1, pipeline.stages().size());
+    }
+
+    @Test
+    void splitsOnPipeIntoTrimmedStages() {
+        Pipeline pipeline = parser.parse("tail -f /tmp/foo/file-1 | head -n 5");
+
+        assertEquals(2, pipeline.stages().size());
+        ParsedLine first = pipeline.stages().get(0);
+        ParsedLine second = pipeline.stages().get(1);
+        assertEquals("tail", first.command());
+        assertEquals("-f /tmp/foo/file-1", first.args());
+        assertEquals("head", second.command());
+        assertEquals("-n 5", second.args());
     }
 }

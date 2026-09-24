@@ -1,9 +1,11 @@
 package shell.command;
 
 import shell.cli.ParsedLine;
+import shell.cli.Pipeline;
 import shell.command.builtin.Builtin;
 import shell.command.builtin.BuiltinRegistry;
 import shell.command.exec.ExternalCommandRunner;
+import shell.command.exec.PipelineRunner;
 import shell.command.job.Job;
 import shell.command.job.JobManager;
 import shell.env.PathResolver;
@@ -17,21 +19,32 @@ public class CommandDispatch {
 
     private final PathResolver pathResolver;
     private final ExternalCommandRunner externalRunner;
+    private final PipelineRunner pipelineRunner;
     private final BuiltinRegistry builtinRegistry;
     private final JobManager jobManager;
 
     public CommandDispatch(PathResolver pathResolver, BuiltinRegistry builtinRegistry, JobManager registry) {
-        this(pathResolver, new ExternalCommandRunner(), builtinRegistry, registry);
+        this(pathResolver, new ExternalCommandRunner(), new PipelineRunner(), builtinRegistry, registry);
     }
 
-    public CommandDispatch(PathResolver pathResolver, ExternalCommandRunner externalRunner, BuiltinRegistry builtinRegistry, JobManager jobManager) {
+    public CommandDispatch(PathResolver pathResolver, ExternalCommandRunner externalRunner, PipelineRunner pipelineRunner, BuiltinRegistry builtinRegistry, JobManager jobManager) {
         this.pathResolver = pathResolver;
         this.externalRunner = externalRunner;
+        this.pipelineRunner = pipelineRunner;
         this.builtinRegistry = builtinRegistry;
         this.jobManager = jobManager;
     }
 
-    public void dispatch(ParsedLine line) throws IOException {
+    public void dispatch(Pipeline pipeline) throws IOException {
+        if (pipeline.isSingleStage()) {
+            dispatch(pipeline.stages().getFirst());
+        }
+        else {
+            pipelineRunner.run(pipeline);
+        }
+    }
+
+    private void dispatch(ParsedLine line) throws IOException {
         try (ExecContext context = ExecContext.from(line)) {
             dispatch(line, context);
         }
@@ -42,7 +55,7 @@ public class CommandDispatch {
             Process process = externalRunner.runInBackground(line);
 
             String command = line.command();
-            if (line.args() != null && !line.args().isEmpty() ) {
+            if (line.args() != null && !line.args().isEmpty()) {
                 command = command.concat(" ").concat(line.args());
             }
 
