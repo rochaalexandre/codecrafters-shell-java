@@ -40,6 +40,15 @@ public class PipelineRunner {
                 }                                                    // ← close() here = EOF for wc
             }
 
+            // A builtin at the end ignores stdin, so it just writes to the terminal (or its own
+            // redirect); the stage feeding it had its output discarded in getProcessBuilderList.
+            ParsedLine lastStage = pipeline.stages().getLast();
+            if (resolver.resolve(lastStage) instanceof Resolved.BuiltinCommand(Builtin builtin)) {
+                try (ExecContext context = ExecContext.from(lastStage)) {
+                    builtin.run(lastStage, context);
+                }
+            }
+
             for (Process process : processList) {
                 process.waitFor();
             }
@@ -69,7 +78,12 @@ public class PipelineRunner {
                     processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE);
                 }
                 if (i < last) {
-                    processBuilder.redirectOutput(ProcessBuilder.Redirect.PIPE);
+                    // Builtins never read stdin, so output headed into one has nowhere to go.
+                    boolean nextIsBuiltin = resolver.resolve(pipeline.stages().get(i + 1))
+                            instanceof Resolved.BuiltinCommand;
+                    processBuilder.redirectOutput(nextIsBuiltin
+                            ? ProcessBuilder.Redirect.DISCARD
+                            : ProcessBuilder.Redirect.PIPE);
                 }
                 processBuilders.add(processBuilder);
             }
