@@ -56,6 +56,10 @@ public final class InputParser {
             }
         }
 
+        // Naive: drops double quotes but args are still re-split on spaces downstream, so
+        // "a b" becomes two args. Revisit with real tokenization in the quoting phase.
+        args = args.replace("\"", "");
+
         return new ParsedLine(command, args, stdout, stderr, isBackgroundCommand);
     }
 }

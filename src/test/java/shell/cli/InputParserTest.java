@@ -26,6 +26,13 @@ class InputParserTest {
     }
 
     @Test
+    void stripsDoubleQuotesFromArgs() {
+        ParsedLine line = parseSingle("grep \"f-46\"");
+
+        assertEquals("f-46", line.args());
+    }
+
+    @Test
     void commandWithNoArgs() {
         ParsedLine line = parseSingle("pwd");
 
