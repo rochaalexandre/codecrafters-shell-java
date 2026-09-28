@@ -1,6 +1,7 @@
 package shell.io;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,6 +31,14 @@ public final class Stream implements AutoCloseable {
     /** Wraps a JVM-owned terminal stream (typically {@link System#out} or {@link System#err}). */
     public static Stream console(PrintStream terminal) {
         return new Stream(terminal, false);
+    }
+
+    /**
+     * Wraps the write end of a pipe into another process's stdin. The returned stream owns it:
+     * closing it is what sends EOF, so the reader (e.g. {@code wc}) can finish.
+     */
+    public static Stream toPipe(OutputStream pipe) {
+        return new Stream(new PrintStream(pipe), true);
     }
 
     /**

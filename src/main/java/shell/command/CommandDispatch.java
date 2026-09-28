@@ -12,26 +12,27 @@ import shell.env.PathResolver;
 import shell.io.ExecContext;
 
 import java.io.IOException;
-import java.util.Optional;
 
 public class CommandDispatch {
 
 
-    private final PathResolver pathResolver;
+    private final CommandResolver resolver;
     private final ExternalCommandRunner externalRunner;
     private final PipelineRunner pipelineRunner;
-    private final BuiltinRegistry builtinRegistry;
     private final JobManager jobManager;
 
     public CommandDispatch(PathResolver pathResolver, BuiltinRegistry builtinRegistry, JobManager registry) {
-        this(pathResolver, new ExternalCommandRunner(), new PipelineRunner(), builtinRegistry, registry);
+        this(new CommandResolver(builtinRegistry, pathResolver), registry);
     }
 
-    public CommandDispatch(PathResolver pathResolver, ExternalCommandRunner externalRunner, PipelineRunner pipelineRunner, BuiltinRegistry builtinRegistry, JobManager jobManager) {
-        this.pathResolver = pathResolver;
+    private CommandDispatch(CommandResolver resolver, JobManager jobManager) {
+        this(resolver, new ExternalCommandRunner(), new PipelineRunner(resolver), jobManager);
+    }
+
+    public CommandDispatch(CommandResolver resolver, ExternalCommandRunner externalRunner, PipelineRunner pipelineRunner, JobManager jobManager) {
+        this.resolver = resolver;
         this.externalRunner = externalRunner;
         this.pipelineRunner = pipelineRunner;
-        this.builtinRegistry = builtinRegistry;
         this.jobManager = jobManager;
     }
 
@@ -64,17 +65,10 @@ public class CommandDispatch {
             return;
         }
 
-        Optional<Builtin> builtin = builtinRegistry.getBuiltin(line.command());
-        if (builtin.isPresent()) {
-            builtin.get().run(line, context);
-        }
-        else {
-            if (pathResolver.findExecutable(line.command()).isPresent()) {
-                externalRunner.run(line);
-            }
-            else {
-                context.out().println(line.command() + ": command not found");
-            }
+        switch (resolver.resolve(line)) {
+            case Resolved.BuiltinCommand(Builtin builtin) -> builtin.run(line, context);
+            case Resolved.ExternalCommand() -> externalRunner.run(line);
+            case Resolved.NotFound() -> context.out().println(line.command() + ": command not found");
         }
     }
 }
