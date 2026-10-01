@@ -30,13 +30,17 @@ public final class ExecContext implements AutoCloseable {
     }
 
     /**
-     * Builds a context from a parsed line: a redirected stream goes to its file (truncating or
+     * Opens output resources from a parsed line: a redirected stream goes to its file (truncating or
      * appending per {@code >} / {@code >>}), an unredirected one stays on the terminal.
      */
-    public static ExecContext from(ParsedLine line) throws IOException {
-        return new ExecContext(
-                toStream(line.stdout(), System.out),
-                toStream(line.stderr(), System.err));
+    public static ExecContext open(ParsedLine line) throws IOException {
+        Stream out = toStream(line.stdout(), System.out);
+        try {
+            return new ExecContext(out, toStream(line.stderr(), System.err));
+        } catch (IOException | RuntimeException e) {
+            out.close();
+            throw e;
+        }
     }
 
     private static Stream toStream(Redirect redirect, PrintStream terminal) throws IOException {

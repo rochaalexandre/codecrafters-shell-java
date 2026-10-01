@@ -44,7 +44,7 @@ public class PipelineRunner {
             // redirect); the stage feeding it had its output discarded in getProcessBuilderList.
             ParsedLine lastStage = pipeline.stages().getLast();
             if (resolver.resolve(lastStage) instanceof Resolved.BuiltinCommand(Builtin builtin)) {
-                try (ExecContext context = ExecContext.from(lastStage)) {
+                try (ExecContext context = ExecContext.open(lastStage)) {
                     builtin.run(lastStage, context);
                 }
             }

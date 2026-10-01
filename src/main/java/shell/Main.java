@@ -50,7 +50,7 @@ public class Main {
                     break;
                 }
 
-                DISPATCH.dispatch(pipeline);
+                DISPATCH.dispatch(pipeline, context);
                 terminal.flush();
             } catch (UserInterruptException | EndOfFileException | IOError e) {
                 break;

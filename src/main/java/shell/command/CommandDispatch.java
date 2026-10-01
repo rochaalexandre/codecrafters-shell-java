@@ -36,39 +36,48 @@ public class CommandDispatch {
         this.jobManager = jobManager;
     }
 
-    public void dispatch(Pipeline pipeline) throws IOException {
+    public void dispatch(Pipeline pipeline, ExecContext console) throws IOException {
         if (pipeline.isSingleStage()) {
-            dispatch(pipeline.stages().getFirst());
+            dispatch(pipeline.stages().getFirst(), console);
         }
         else {
             pipelineRunner.run(pipeline);
         }
     }
 
-    private void dispatch(ParsedLine line) throws IOException {
-        try (ExecContext context = ExecContext.from(line)) {
-            dispatch(line, context);
-        }
-    }
-
-    private void dispatch(ParsedLine line, ExecContext context) {
+    private void dispatch(ParsedLine line, ExecContext console) throws IOException {
         if (line.runInBackground()) {
-            Process process = externalRunner.runInBackground(line);
-
-            String command = line.command();
-            if (line.args() != null && !line.args().isEmpty()) {
-                command = command.concat(" ").concat(line.args());
-            }
-
-            Job job = jobManager.add(process, command);
-            context.out().printf("[%s] %s%n", job.number(), job.pid());
+            runBackground(line, console);
             return;
         }
 
         switch (resolver.resolve(line)) {
-            case Resolved.BuiltinCommand(Builtin builtin) -> builtin.run(line, context);
             case Resolved.ExternalCommand() -> externalRunner.run(line);
-            case Resolved.NotFound() -> context.out().println(line.command() + ": command not found");
+            case Resolved.BuiltinCommand(Builtin builtin) -> runBuiltin(line, builtin);
+            case Resolved.NotFound() -> reportNotFound(line);
+        }
+    }
+
+    private void runBackground(ParsedLine line, ExecContext console) {
+        Process process = externalRunner.runInBackground(line);
+        String command = line.command();
+        if (line.args() != null && !line.args().isEmpty()) {
+            command = command.concat(" ").concat(line.args());
+        }
+
+        Job job = jobManager.add(process, command);
+        console.out().printf("[%s] %s%n", job.number(), job.pid());
+    }
+
+    private void runBuiltin(ParsedLine line, Builtin builtin) throws IOException {
+        try (ExecContext context = ExecContext.open(line)) {
+            builtin.run(line, context);
+        }
+    }
+
+    private void reportNotFound(ParsedLine line) throws IOException {
+        try (ExecContext context = ExecContext.open(line)) {
+            context.err().println(line.command() + ": command not found");
         }
     }
 }
