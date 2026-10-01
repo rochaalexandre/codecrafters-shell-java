@@ -20,7 +20,7 @@ public class BuiltinRegistry {
     public BuiltinRegistry(PathResolver pathResolver, CompleterRegistry completerRegistry, JobManager jobManager) {
         List.of(new EchoBuiltin(), new PwdBuiltin(),
                         new TypeBuiltin(this, pathResolver), new CdBuiltin(),
-                        new CompleteBuiltin(completerRegistry), new JobBuiltin(jobManager))
+                        new CompleteBuiltin(completerRegistry), new JobBuiltin(jobManager), new HistoryBuiltin())
                 .forEach(b -> commandsMap.put(b.name(), b));
     }
 
