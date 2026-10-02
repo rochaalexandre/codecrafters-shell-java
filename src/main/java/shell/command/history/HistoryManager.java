@@ -1,10 +1,11 @@
 package shell.command.history;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class HistoryManager {
 
-    private final List<String> entries = new ArrayList<>();
+    private List<String> entries = new ArrayList<>();
 
     public void record(String input) {
         entries.add(input);
