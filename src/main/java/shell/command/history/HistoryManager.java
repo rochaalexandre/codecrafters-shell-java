@@ -15,7 +15,7 @@ public class HistoryManager {
     public List<String> getEntries(Integer limit) {
         Stream<String> entriesStream = entries.stream();
         if (limit != null) {
-            return entriesStream.limit(limit).toList();
+            return entriesStream.skip(Math.max(0, entries.size() - limit)).toList();
         }
         return entriesStream.toList();
     }
