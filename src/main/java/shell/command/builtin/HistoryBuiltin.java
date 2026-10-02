@@ -20,7 +20,7 @@ public class HistoryBuiltin implements Builtin {
 
     @Override
     public int run(ParsedLine line, ExecContext context) {
-        Integer limit = isInteger(line.args()) ? null : Integer.valueOf(line.args());
+        Integer limit = isInteger(line.args()) ? Integer.valueOf(line.args()) : null;
 
         List<String> entries = historyManager.getEntries(limit);
         for (int i = 0; i < entries.size(); i++) {
