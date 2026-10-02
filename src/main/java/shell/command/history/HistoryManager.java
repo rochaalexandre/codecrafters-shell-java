@@ -26,6 +26,10 @@ public class HistoryManager {
         entries.clear();
     }
 
+    public Map<Integer, String> getEntries() {
+        return getEntries(null);
+    }
+
     public Map<Integer, String> getEntries(Integer limit) {
         int startIndex = getSkip(limit, entries.size());
         Map<Integer, String> result = new LinkedHashMap<>();
