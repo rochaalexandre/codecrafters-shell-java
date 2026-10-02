@@ -11,7 +11,7 @@ public class EchoBuiltin implements Builtin {
 
     @Override
     public int run(ParsedLine line, ExecContext context) {
-        context.out().println(String.join(" ", line.args()).replace("echo ", ""));
+        context.out().println(String.join(" ", line.args()));
         return 0;
     }
 }
