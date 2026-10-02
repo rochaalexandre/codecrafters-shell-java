@@ -31,6 +31,6 @@ public class HistoryBuiltin implements Builtin {
     }
 
     public static boolean isInteger(String str) {
-        return str != null && str.matches("-?\\d+");
+        return str != null && !str.isEmpty() && str.matches("-?\\d+");
     }
 }
