@@ -10,6 +10,10 @@ public class HistoryManager {
         entries.add(input);
     }
 
+    public void record(List<String> inputs) {
+        entries.addAll(inputs);
+    }
+
     public int size() {
         return entries.size();
     }
