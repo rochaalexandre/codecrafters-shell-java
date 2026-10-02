@@ -33,7 +33,7 @@ public class HistoryManager {
 
     public void saveOnExit() {
         if (historyFile != null) {
-            save(historyFile);
+            append(historyFile);
         }
     }
 
@@ -58,8 +58,8 @@ public class HistoryManager {
         }
     }
 
-    public int save(Path filePath) {
-        return save(filePath, System.err);
+    public int append(Path filePath) {
+        return append(filePath, System.err);
     }
 
     public int save(Path filePath, PrintStream errors) {

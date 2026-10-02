@@ -35,7 +35,7 @@ class HistoryManagerTest {
         assertEquals(0, manager.append(file, System.err));
         assertEquals(List.of("echo hello"), Files.readAllLines(file));
         Files.writeString(file, "stale content that is longer than the saved history\n");
-        assertEquals(0, manager.save(file));
+        assertEquals(0, manager.save(file, System.err));
         assertEquals(List.of("echo hello"), Files.readAllLines(file));
     }
 }
