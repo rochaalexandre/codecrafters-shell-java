@@ -60,11 +60,7 @@ public class CommandDispatch {
 
     private void runBackground(ParsedLine line, ExecContext console) {
         Process process = externalRunner.runInBackground(line);
-        String command = line.command();
-        if (line.args() != null && !line.args().isEmpty()) {
-            command = command.concat(" ").concat(line.args());
-        }
-
+        String command = line.getFullCommand();
         Job job = jobManager.add(process, command);
         console.out().printf("[%s] %s%n", job.number(), job.pid());
     }

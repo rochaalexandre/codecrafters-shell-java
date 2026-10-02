@@ -12,6 +12,7 @@ import shell.command.job.JobManager;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,7 +23,7 @@ class CommandDispatchTest {
     void externalRunnerReceivesConfigurationWithoutDispatcherOpeningFiles() throws Exception {
         Path output = directory.resolve("output.txt");
         Files.writeString(output, "existing content");
-        ParsedLine line = new ParsedLine("external", "", new Redirect(output.toString(), false), null, false);
+        ParsedLine line = new ParsedLine("external", List.of(), new Redirect(output.toString(), false), null, false);
         boolean[] called = {false};
         ExternalCommandRunner runner = new ExternalCommandRunner() {
             @Override public int run(ParsedLine received) {
@@ -39,7 +40,7 @@ class CommandDispatchTest {
     @Test
     void builtinWritesToConfiguredFileAndClosesIt() throws Exception {
         Path output = directory.resolve("output.txt");
-        ParsedLine line = new ParsedLine("echo", "hello", new Redirect(output.toString(), false), null, false);
+        ParsedLine line = new ParsedLine("echo", List.of("hello"), new Redirect(output.toString(), false), null, false);
         dispatcher(new Resolved.BuiltinCommand(new EchoBuiltin()), new ExternalCommandRunner())
                 .dispatch(Pipeline.of(line), ExecContext.defaultContext());
         assertEquals("hello" + System.lineSeparator(), Files.readString(output));

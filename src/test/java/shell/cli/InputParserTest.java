@@ -1,6 +1,7 @@
 package shell.cli;
 
 import org.junit.jupiter.api.Test;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -15,6 +16,14 @@ class InputParserTest {
         return parser.parse(input).stages().getFirst();
     }
 
+    @Test
+    void splitsRepeatedWhitespaceWithoutEmptyArguments() {
+        ParsedLine line = parseSingle("echo\t apple   orange  > out.txt");
+        assertEquals("echo", line.command());
+        assertEquals(List.of("apple", "orange"), line.args());
+        assertEquals("out.txt", line.stdout().target());
+    }
+
     // --- no redirect ---
 
     @Test
@@ -22,14 +31,14 @@ class InputParserTest {
         ParsedLine line = parseSingle("echo hello world");
 
         assertEquals("echo", line.command());
-        assertEquals("hello world", line.args());
+        assertEquals(List.of("hello", "world"), line.args());
     }
 
     @Test
     void stripsDoubleQuotesFromArgs() {
         ParsedLine line = parseSingle("grep \"f-46\"");
 
-        assertEquals("f-46", line.args());
+        assertEquals(List.of("f-46"), line.args());
     }
 
     @Test
@@ -37,7 +46,7 @@ class InputParserTest {
         ParsedLine line = parseSingle("pwd");
 
         assertEquals("pwd", line.command());
-        assertEquals("", line.args());
+        assertEquals(List.of(), line.args());
     }
 
     @Test
@@ -57,7 +66,7 @@ class InputParserTest {
         ParsedLine line = parseSingle("echo hello > output.txt");
 
         assertEquals("echo", line.command());
-        assertEquals("hello", line.args());
+        assertEquals(List.of("hello"), line.args());
         assertEquals("output.txt", line.stdout().target());
         assertFalse(line.stdout().append());
         assertTrue(line.hasStdoutRedirect());
@@ -68,7 +77,7 @@ class InputParserTest {
         ParsedLine line = parseSingle("echo hello 1> output.txt");
 
         assertEquals("echo", line.command());
-        assertEquals("hello", line.args());
+        assertEquals(List.of("hello"), line.args());
         assertEquals("output.txt", line.stdout().target());
     }
 
@@ -77,7 +86,7 @@ class InputParserTest {
         ParsedLine line = parseSingle("ls > out.txt");
 
         assertEquals("ls", line.command());
-        assertEquals("", line.args());
+        assertEquals(List.of(), line.args());
         assertEquals("out.txt", line.stdout().target());
     }
 
@@ -86,7 +95,7 @@ class InputParserTest {
         ParsedLine line = parseSingle("ls -1 /tmp > out.txt");
 
         assertEquals("ls", line.command());
-        assertEquals("-1 /tmp", line.args());
+        assertEquals(List.of("-1", "/tmp"), line.args());
         assertEquals("out.txt", line.stdout().target());
     }
 
@@ -97,7 +106,7 @@ class InputParserTest {
         ParsedLine line = parseSingle("ls /nope 2> err.txt");
 
         assertEquals("ls", line.command());
-        assertEquals("/nope", line.args());
+        assertEquals(List.of("/nope"), line.args());
         assertEquals("err.txt", line.stderr().target());
         assertFalse(line.stderr().append());
         assertTrue(line.hasStderrRedirect());
@@ -109,7 +118,7 @@ class InputParserTest {
         ParsedLine line = parseSingle("ls /nope > out.txt 2> err.txt");
 
         assertEquals("ls", line.command());
-        assertEquals("/nope", line.args());
+        assertEquals(List.of("/nope"), line.args());
         assertEquals("out.txt", line.stdout().target());
         assertEquals("err.txt", line.stderr().target());
     }
@@ -121,7 +130,7 @@ class InputParserTest {
         ParsedLine line = parseSingle("echo hi >> log.txt");
 
         assertEquals("echo", line.command());
-        assertEquals("hi", line.args());
+        assertEquals(List.of("hi"), line.args());
         assertEquals("log.txt", line.stdout().target());
         assertTrue(line.stdout().append());
     }
@@ -151,8 +160,8 @@ class InputParserTest {
         ParsedLine first = pipeline.stages().get(0);
         ParsedLine second = pipeline.stages().get(1);
         assertEquals("tail", first.command());
-        assertEquals("-f /tmp/foo/file-1", first.args());
+        assertEquals(List.of("-f", "/tmp/foo/file-1"), first.args());
         assertEquals("head", second.command());
-        assertEquals("-n 5", second.args());
+        assertEquals(List.of("-n", "5"), second.args());
     }
 }

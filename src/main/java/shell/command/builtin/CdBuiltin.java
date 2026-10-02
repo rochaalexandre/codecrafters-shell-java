@@ -15,9 +15,10 @@ public class CdBuiltin implements Builtin {
 
     @Override
     public int run(ParsedLine line, ExecContext context) {
-        Path path = getPath(line.args());
+        String argument = String.join(" ", line.args());
+        Path path = getPath(argument);
         if (Files.notExists(path)) {
-            context.err().println("cd: " + line.args() + ": No such file or directory");
+            context.err().println("cd: " + argument + ": No such file or directory");
         } else {
             System.setProperty("user.dir", path.toAbsolutePath().toString());
         }

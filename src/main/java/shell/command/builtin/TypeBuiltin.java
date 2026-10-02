@@ -23,7 +23,7 @@ public class TypeBuiltin implements Builtin {
 
     @Override
     public int run(ParsedLine line, ExecContext context) {
-        context.out().println(getCommandType(line.args()));
+        context.out().println(getCommandType(String.join(" ", line.args())));
         return 0;
     }
 

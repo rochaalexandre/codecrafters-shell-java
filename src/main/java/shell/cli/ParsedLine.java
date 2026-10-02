@@ -1,18 +1,17 @@
 package shell.cli;
 
-/**
- * Result of splitting a raw input line into the command name, its argument string,
- * and any output redirections.
- *
- * <p>This record is the contract between {@link InputParser} and the rest of the shell.
- * When real quoting/tokenization arrives, {@code InputParser} changes; ideally this shape
- * grows (e.g. a {@code List<String> argv}) without callers needing a rewrite.
- *
- * <p>{@code stdout} / {@code stderr} are {@code null} when that stream is not redirected.
- */
-public record ParsedLine(String command, String args, Redirect stdout, Redirect stderr, boolean runInBackground) {
+import java.util.List;
 
-    public ParsedLine(String command, String args, boolean runInBackground) {
+/**
+ * Parsed command, arguments, and output destinations passed to execution.
+ */
+public record ParsedLine(String command, List<String> args, Redirect stdout, Redirect stderr, boolean runInBackground) {
+
+    public ParsedLine {
+        args = List.copyOf(args);
+    }
+
+    public ParsedLine(String command, List<String> args, boolean runInBackground) {
         this(command, args, null, null, runInBackground);
     }
 
@@ -30,5 +29,12 @@ public record ParsedLine(String command, String args, Redirect stdout, Redirect 
 
     public boolean runInBackground() {
         return runInBackground;
+    }
+
+    public String getFullCommand() {
+        if (args == null || args.isEmpty()) {
+            return command;
+        }
+        return command.concat(" ").concat(String.join(" ", args));
     }
 }

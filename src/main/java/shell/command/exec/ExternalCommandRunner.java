@@ -6,7 +6,6 @@ import shell.cli.Redirect;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ExternalCommandRunner {
@@ -31,10 +30,7 @@ public class ExternalCommandRunner {
     public static ProcessBuilder getProcessBuilder(ParsedLine line) {
         List<String> commandList = new ArrayList<>();
         commandList.add(line.command());
-        String userArgs = line.args();
-        if (!userArgs.isBlank()) {
-            commandList.addAll(Arrays.asList(userArgs.split(" ")));
-        }
+        commandList.addAll(line.args());
         ProcessBuilder pb = new ProcessBuilder(commandList);
         pb.directory(new File(System.getProperty("user.dir")));
         pb.redirectInput(ProcessBuilder.Redirect.INHERIT);

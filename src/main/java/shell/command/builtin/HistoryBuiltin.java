@@ -24,14 +24,13 @@ public class HistoryBuiltin implements Builtin {
 
     @Override
     public int run(ParsedLine line, ExecContext context) {
-        if (line.args() == null) {
-            return 0;
-        }
-
-        String[] tokens = line.args().strip().split("\\s+");
-        String file = tokens[tokens.length - 1];
-        if (tokens[0].equals("-r")) {
-            appHistoryFromFile(file);
+        List<String> args = line.args();
+        if (!args.isEmpty() && args.getFirst().equals("-r")) {
+            if (args.size() != 2) {
+                context.err().println("history: -r requires a filename");
+                return 1;
+            }
+            appHistoryFromFile(args.getLast());
         } else {
             printEntries(line, context);
         }
@@ -46,7 +45,8 @@ public class HistoryBuiltin implements Builtin {
     }
 
     private void printEntries(ParsedLine line, ExecContext context) {
-        Integer limit = isInteger(line.args()) ? Integer.valueOf(line.args()) : null;
+        String argument = line.args().isEmpty() ? "" : line.args().getFirst();
+        Integer limit = isInteger(argument) ? Integer.valueOf(argument) : null;
         Map<Integer, String> entries = historyManager.getEntries(limit);
         entries.forEach((k, v) -> context.out().printf("    %s %s\n", k, v));
     }

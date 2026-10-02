@@ -1,13 +1,14 @@
 package shell.cli;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Turns a raw input line into a {@link Pipeline} of {@link ParsedLine} stages.
  *
- * <p>Today this is a naive split on the first space. This is the single place quoting,
+ * <p>Arguments are split on whitespace here. This is the single place quoting,
  * escaping and whitespace handling will live once those phases arrive, so nothing else
  * in the shell needs to learn about tokenization.
  */
@@ -28,10 +29,10 @@ public final class InputParser {
 
     private ParsedLine parseStage(String input) {
         boolean isBackgroundCommand = input.trim().endsWith("&");
-        String[] parts = input.replace("&", "").split(" ", 2);
+        String[] parts = input.replace("&", "").split("\\s+", 2);
         String command = parts[0];
         if (parts.length < 2 || parts[1].isBlank()) {
-            return new ParsedLine(command, "", isBackgroundCommand);
+            return new ParsedLine(command, List.of(), isBackgroundCommand);
         }
 
         String rest = parts[1];
@@ -56,10 +57,10 @@ public final class InputParser {
             }
         }
 
-        // Naive: drops double quotes but args are still re-split on spaces downstream, so
-        // "a b" becomes two args. Revisit with real tokenization in the quoting phase.
+        // Quoted argument grouping remains deferred until the quoting phase.
         args = args.replace("\"", "");
 
-        return new ParsedLine(command, args, stdout, stderr, isBackgroundCommand);
+        List<String> arguments = args.isBlank() ? List.of() : List.of(args.strip().split("\\s+"));
+        return new ParsedLine(command, arguments, stdout, stderr, isBackgroundCommand);
     }
 }

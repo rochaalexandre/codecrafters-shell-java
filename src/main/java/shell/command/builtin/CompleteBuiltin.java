@@ -4,10 +4,7 @@ import shell.cli.ParsedLine;
 import shell.command.completer.CompleterRegistry;
 import shell.io.ExecContext;
 
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 public class CompleteBuiltin implements Builtin {
     private final CompleterRegistry registry;
@@ -23,14 +20,15 @@ public class CompleteBuiltin implements Builtin {
 
     @Override
     public int run(ParsedLine line, ExecContext context) {
-        if (line.args() == null) {
+        List<String> args = line.args();
+        if (args.isEmpty()) {
             return 0;
         }
-        String[] tokens = line.args().strip().split("\\s+");
-        String command = tokens[tokens.length - 1];
-        switch (tokens[0]) {
+        String option = args.getFirst();
+        String command = args.getLast();
+        switch (option) {
             case "-p" -> executeDisplayOption(context, command);
-            case "-C" -> registry.registerCompletion(command, tokens[1]);
+            case "-C" -> registry.registerCompletion(command, args.get(1));
             case "-r" -> registry.removeCompletion(command);
         }
         return 0;
