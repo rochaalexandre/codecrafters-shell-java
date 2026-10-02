@@ -13,6 +13,7 @@ import shell.command.history.HistoryManager;
 import shell.command.job.JobManager;
 import shell.completer.BashStyleCompleter;
 import shell.completer.CompleterFactory;
+import shell.completer.TerminalHistory;
 import shell.env.PathResolver;
 import shell.io.ExecContext;
 
@@ -52,7 +53,6 @@ public class Main {
                     break;
                 }
 
-                HISTORY_MANAGER.record(input);
                 DISPATCH.dispatch(pipeline, context);
                 terminal.flush();
             } catch (UserInterruptException | EndOfFileException | IOError e) {
@@ -69,6 +69,7 @@ public class Main {
         return LineReaderBuilder
                 .builder()
                 .parser(getDefaultParser())
+                .history(new TerminalHistory(HISTORY_MANAGER))
                 .completer(new BashStyleCompleter(commandCompleter, dirAndFileCompleter, customCommandCompleter))
                 .option(LineReader.Option.AUTO_REMOVE_SLASH,  false)
                 .terminal(terminal).build();

@@ -10,6 +10,18 @@ public class HistoryManager {
         entries.add(input);
     }
 
+    public int size() {
+        return entries.size();
+    }
+
+    public String get(int index) {
+        return entries.get(index);
+    }
+
+    public void clear() {
+        entries.clear();
+    }
+
     public Map<Integer, String> getEntries(Integer limit) {
         int startIndex = getSkip(limit, entries.size());
         Map<Integer, String> result = new LinkedHashMap<>();
@@ -24,9 +36,5 @@ public class HistoryManager {
             return 0;
         }
         return Math.max(0, size - limit);
-    }
-
-    static void main() {
-        System.out.println("getSkip "+ getSkip(2, 3));
     }
 }
