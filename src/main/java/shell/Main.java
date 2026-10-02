@@ -19,6 +19,8 @@ import shell.io.ExecContext;
 
 import java.io.IOError;
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 
 public class Main {
 
@@ -32,12 +34,26 @@ public class Main {
     private static final CompleterFactory COMPLETER_FACTORY = new CompleterFactory(PATH_RESOLVER, BUILTIN_REGISTRY, COMPLETER_REGISTRY);
 
     public static void main(String[] args) {
+        initHistory();
         try (Terminal terminal = TerminalBuilder.builder().system(true).build()){
             // Create a line reader
             LineReader reader = buildReader(terminal);
             replLoop(reader, terminal);
         } catch (IOException e) {
             System.err.println("Error creating terminal: " + e.getMessage());
+        }
+    }
+
+    private static void initHistory() {
+        String historyFile = System.getenv("HISTFILE");
+        if (historyFile == null || historyFile.isEmpty()) {
+            return;
+        }
+
+        try {
+            HISTORY_MANAGER.load(Path.of(historyFile));
+        } catch (InvalidPathException e) {
+            System.err.printf("history: cannot read '%s': %s%n", historyFile, e.getMessage());
         }
     }
 

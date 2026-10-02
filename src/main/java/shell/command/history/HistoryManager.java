@@ -1,11 +1,24 @@
 package shell.command.history;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Stream;
 
 public class HistoryManager {
 
-    private List<String> entries = new ArrayList<>();
+    private final List<String> entries = new ArrayList<>();
+
+    public void load(Path filePath) {
+        try {
+            record(Files.readAllLines(filePath));
+        } catch (NoSuchFileException e) {
+            // A new history file starts with empty history.
+        } catch (IOException e) {
+            System.err.printf("history: cannot read '%s': %s%n", filePath, e.getMessage());
+        }
+    }
 
     public void record(String input) {
         entries.add(input);
