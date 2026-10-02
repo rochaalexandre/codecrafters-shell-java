@@ -3,6 +3,7 @@ package shell.command.history;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -12,6 +13,29 @@ public class HistoryManager {
 
     private final List<String> entries = new ArrayList<>();
     private int appendPosition;
+    private Path historyFile;
+
+    public static HistoryManager fromEnvironment() {
+        HistoryManager manager = new HistoryManager();
+        String configuredFile = System.getenv("HISTFILE");
+        if (configuredFile == null || configuredFile.isEmpty()) {
+            return manager;
+        }
+
+        try {
+            manager.historyFile = Path.of(configuredFile);
+            manager.load(manager.historyFile);
+        } catch (InvalidPathException e) {
+            System.err.printf("history: invalid path '%s': %s%n", configuredFile, e.getMessage());
+        }
+        return manager;
+    }
+
+    public void saveOnExit() {
+        if (historyFile != null) {
+            save(historyFile);
+        }
+    }
 
     public void load(Path filePath) {
         try {
