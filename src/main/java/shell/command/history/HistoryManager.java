@@ -1,8 +1,6 @@
 package shell.command.history;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.*;
 
 public class HistoryManager {
 
@@ -12,11 +10,23 @@ public class HistoryManager {
         entries.add(input);
     }
 
-    public List<String> getEntries(Integer limit) {
-        Stream<String> entriesStream = entries.stream();
-        if (limit != null) {
-            return entriesStream.skip(Math.max(0, entries.size() - limit)).toList();
+    public Map<Integer, String> getEntries(Integer limit) {
+        int startIndex = getSkip(limit, entries.size());
+        Map<Integer, String> result = new LinkedHashMap<>();
+        for (int i = startIndex; i < entries.size(); i++) {
+            result.put(i + 1, entries.get(i));
         }
-        return entriesStream.toList();
+        return result;
+    }
+
+    private static int getSkip(Integer limit, int size) {
+        if (Objects.isNull(limit)) {
+            return 0;
+        }
+        return Math.max(0, size - limit);
+    }
+
+    static void main() {
+        System.out.println("getSkip "+ getSkip(2, 3));
     }
 }

@@ -5,6 +5,7 @@ import shell.command.history.HistoryManager;
 import shell.io.ExecContext;
 
 import java.util.List;
+import java.util.Map;
 
 public class HistoryBuiltin implements Builtin {
     private final HistoryManager historyManager;
@@ -22,11 +23,8 @@ public class HistoryBuiltin implements Builtin {
     public int run(ParsedLine line, ExecContext context) {
         Integer limit = isInteger(line.args()) ? Integer.valueOf(line.args()) : null;
 
-        List<String> entries = historyManager.getEntries(limit);
-        for (int i = 0; i < entries.size(); i++) {
-            String h = entries.get(i);
-            context.out().printf("    %s %s\n", i, h);
-        }
+        Map<Integer, String> entries = historyManager.getEntries(limit);
+        entries.forEach((k, v) -> context.out().printf("    %s %s\n", k, v));
         return 0;
     }
 
