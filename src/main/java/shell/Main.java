@@ -44,19 +44,6 @@ public class Main {
         }
     }
 
-    private static void initHistory() {
-        String historyFile = System.getenv("HISTFILE");
-        if (historyFile == null || historyFile.isEmpty()) {
-            return;
-        }
-
-        try {
-            HISTORY_MANAGER.load(Path.of(historyFile));
-        } catch (InvalidPathException e) {
-            System.err.printf("history: cannot read '%s': %s%n", historyFile, e.getMessage());
-        }
-    }
-
     private static void replLoop(LineReader reader, Terminal terminal) throws IOException {
         while (true) {
             try (ExecContext context = ExecContext.defaultContext()) {
@@ -73,7 +60,35 @@ public class Main {
                 terminal.flush();
             } catch (UserInterruptException | EndOfFileException | IOError e) {
                 break;
+            } finally {
+                saveHistory();
             }
+        }
+    }
+
+    private static void initHistory() {
+        String historyFile = System.getenv("HISTFILE");
+        if (historyFile == null || historyFile.isEmpty()) {
+            return;
+        }
+
+        try {
+            HISTORY_MANAGER.load(Path.of(historyFile));
+        } catch (InvalidPathException e) {
+            System.err.printf("history: cannot read '%s': %s%n", historyFile, e.getMessage());
+        }
+    }
+
+    private static void saveHistory() {
+        String historyFile = System.getenv("HISTFILE");
+        if (historyFile == null || historyFile.isEmpty()) {
+            return;
+        }
+
+        try {
+            HISTORY_MANAGER.save(Path.of(historyFile));
+        } catch (InvalidPathException e) {
+            System.err.printf("history: cannot read '%s': %s%n", historyFile, e.getMessage());
         }
     }
 
