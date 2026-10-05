@@ -19,20 +19,12 @@ public class VariablesManager {
         variables.put(variable, completion);
     }
 
-    public void removeVariable(String variable) {
-        variables.remove(variable);
-    }
-
     public boolean containsVariable(String variable) {
         return variables.containsKey(variable);
     }
 
     public String getVariable(String variable) {
         return variables.get(variable);
-    }
-
-    public Map<String, String> getVariables() {
-        return variables;
     }
 
     public String replaceVariables(String arg) {

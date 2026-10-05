@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class ExternalCommandRunner {
     private static VariablesManager variablesManager = null;
@@ -35,14 +36,9 @@ public class ExternalCommandRunner {
     }
 
     public static ProcessBuilder getProcessBuilder(ParsedLine line) {
-        List<String> args = line.args();
-        if (variablesManager != null) {
-            args = args.stream().map(arg -> variablesManager.replaceVariables(arg)).toList();
-        }
-
         List<String> commandList = new ArrayList<>();
         commandList.add(line.command());
-        commandList.addAll(args);
+        commandList.addAll(getAgrsWithReplacedEnv(line));
         ProcessBuilder pb = new ProcessBuilder(commandList);
         pb.directory(new File(System.getProperty("user.dir")));
         pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
@@ -51,6 +47,14 @@ public class ExternalCommandRunner {
         return pb;
     }
 
+    private static List<String> getAgrsWithReplacedEnv(ParsedLine line) {
+        List<String> args = line.args();
+        if (variablesManager != null) {
+            args = args.stream().map(arg -> variablesManager.replaceVariables(arg))
+                    .filter(Predicate.not(String::isEmpty)).toList();
+        }
+        return args;
+    }
 
     /** A file destination for {@code redirect}, or the parent terminal when it is {@code null}. */
     private static ProcessBuilder.Redirect target(Redirect redirect) {
