@@ -33,11 +33,9 @@ public class HistoryBuiltin implements Builtin {
     }
 
     private int readHistoryFromFile(List<String> args, ExecContext context) {
-        if (args.size() != 2) {
-            context.err().println("history: -r requires a filename");
+        if (isMissingFileName(args, "-r", context)) {
             return 1;
         }
-
         return historyManager.read(Paths.get(args.getLast()), context.err());
     }
 
