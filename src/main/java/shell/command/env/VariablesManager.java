@@ -26,4 +26,20 @@ public class VariablesManager {
     public String getVariable(String variable) {
         return variables.get(variable);
     }
+
+    public Map<String, String> getVariables() {
+        return variables;
+    }
+
+    public String replaceVariables(String arg) {
+        if (arg.contains("$")) {
+            int variableStartIndex = arg.indexOf("$");
+            String beforeVariable = arg.substring(0, variableStartIndex);
+            String variable = arg.substring(variableStartIndex + 1);
+            if (containsVariable(variable)) {
+                return beforeVariable + variables.get(variable);
+            }
+        }
+        return arg;
+    }
 }

@@ -30,7 +30,7 @@ public class Main {
     private static final CompleterRegistry COMPLETER_REGISTRY = new CompleterRegistry();
     private static final VariablesManager VARIABLES_MANAGER = new VariablesManager();
     private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry(PATH_RESOLVER, COMPLETER_REGISTRY, JOB_MANAGER, HISTORY_MANAGER, VARIABLES_MANAGER);
-    private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY, JOB_MANAGER);
+    private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY, JOB_MANAGER, VARIABLES_MANAGER);
     private static final CompleterFactory COMPLETER_FACTORY = new CompleterFactory(PATH_RESOLVER, BUILTIN_REGISTRY, COMPLETER_REGISTRY);
 
     public static void main(String[] args) {

@@ -4,6 +4,7 @@ import shell.cli.ParsedLine;
 import shell.cli.Pipeline;
 import shell.command.builtin.Builtin;
 import shell.command.builtin.BuiltinRegistry;
+import shell.command.env.VariablesManager;
 import shell.command.exec.ExternalCommandRunner;
 import shell.command.exec.PipelineRunner;
 import shell.command.job.Job;
@@ -21,12 +22,9 @@ public class CommandDispatch {
     private final PipelineRunner pipelineRunner;
     private final JobManager jobManager;
 
-    public CommandDispatch(PathResolver pathResolver, BuiltinRegistry builtinRegistry, JobManager registry) {
-        this(new CommandResolver(builtinRegistry, pathResolver), registry);
-    }
-
-    private CommandDispatch(CommandResolver resolver, JobManager jobManager) {
-        this(resolver, new ExternalCommandRunner(), new PipelineRunner(resolver), jobManager);
+    public CommandDispatch(PathResolver pathResolver, BuiltinRegistry builtinRegistry, JobManager jobManager, VariablesManager variablesManager) {
+        CommandResolver resolver = new CommandResolver(builtinRegistry, pathResolver);
+        this(resolver, new ExternalCommandRunner(variablesManager), new PipelineRunner(resolver), jobManager);
     }
 
     public CommandDispatch(CommandResolver resolver, ExternalCommandRunner externalRunner, PipelineRunner pipelineRunner, JobManager jobManager) {

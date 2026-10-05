@@ -2,6 +2,7 @@ package shell.command.exec;
 
 import shell.cli.ParsedLine;
 import shell.cli.Redirect;
+import shell.command.env.VariablesManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExternalCommandRunner {
+    private static VariablesManager variablesManager = null;
+
+    public ExternalCommandRunner(VariablesManager variablesManager) {
+        ExternalCommandRunner.variablesManager = variablesManager;
+    }
+
     public int run(ParsedLine line) {
         ProcessBuilder pb = getProcessBuilder(line);
         try (Process proc = pb.start()) {
@@ -28,9 +35,14 @@ public class ExternalCommandRunner {
     }
 
     public static ProcessBuilder getProcessBuilder(ParsedLine line) {
+        List<String> args = line.args();
+        if (variablesManager != null) {
+            args = args.stream().map(arg -> variablesManager.replaceVariables(arg)).toList();
+        }
+
         List<String> commandList = new ArrayList<>();
         commandList.add(line.command());
-        commandList.addAll(line.args());
+        commandList.addAll(args);
         ProcessBuilder pb = new ProcessBuilder(commandList);
         pb.directory(new File(System.getProperty("user.dir")));
         pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
