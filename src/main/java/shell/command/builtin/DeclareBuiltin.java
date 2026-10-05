@@ -29,17 +29,19 @@ public class DeclareBuiltin implements Builtin {
             }
             return printEnvVariable(line, context);
         } else {
-            storeEnvVariable(line);
+            storeEnvVariable(line, context);
         }
         return 0;
     }
 
-    private void storeEnvVariable(ParsedLine line) {
+    private void storeEnvVariable(ParsedLine line, ExecContext context) {
         Matcher matcher = PATTERN.matcher(line.args().getFirst());
         if (matcher.matches()) {
             String key = matcher.group(1);
             String value = matcher.group(2);
             variablesManager.setVariable(key, value);
+        } else {
+            context.err().printf("declare: `%s': not a valid identifier%n", line.args().getFirst());
         }
     }
 
