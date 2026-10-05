@@ -9,6 +9,7 @@ import shell.cli.Pipeline;
 import shell.command.CommandDispatch;
 import shell.command.builtin.BuiltinRegistry;
 import shell.command.completer.CompleterRegistry;
+import shell.command.env.VariablesManager;
 import shell.command.history.HistoryManager;
 import shell.command.job.JobManager;
 import shell.completer.BashStyleCompleter;
@@ -27,7 +28,8 @@ public class Main {
     private static final JobManager JOB_MANAGER = new JobManager();
     private static final HistoryManager HISTORY_MANAGER = HistoryManager.fromEnvironment();
     private static final CompleterRegistry COMPLETER_REGISTRY = new CompleterRegistry();
-    private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry(PATH_RESOLVER, COMPLETER_REGISTRY, JOB_MANAGER, HISTORY_MANAGER);
+    private static final VariablesManager VARIABLES_MANAGER = new VariablesManager();
+    private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry(PATH_RESOLVER, COMPLETER_REGISTRY, JOB_MANAGER, HISTORY_MANAGER, VARIABLES_MANAGER);
     private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY, JOB_MANAGER);
     private static final CompleterFactory COMPLETER_FACTORY = new CompleterFactory(PATH_RESOLVER, BUILTIN_REGISTRY, COMPLETER_REGISTRY);
 
