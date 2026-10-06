@@ -20,6 +20,7 @@ import shell.io.ExecContext;
 
 import java.io.IOError;
 import java.io.IOException;
+import java.util.Optional;
 
 public class Main {
 
@@ -34,44 +35,53 @@ public class Main {
     private static final CompleterFactory COMPLETER_FACTORY = new CompleterFactory(PATH_RESOLVER, BUILTIN_REGISTRY, COMPLETER_REGISTRY);
 
     public static void main(String[] args) {
-        try (Terminal terminal = TerminalBuilder.builder().system(true).build()){
-            // Create a line reader
+        try (Terminal terminal = TerminalBuilder.builder().system(true).build();
+             ExecContext context = ExecContext.defaultContext()) {
             LineReader reader = buildReader(terminal);
-            replLoop(reader, terminal);
+            replLoop(reader, terminal, context);
+        } catch (UserInterruptException | EndOfFileException | IOError e) {
+            // End the session.
         } catch (IOException e) {
-            System.err.println("Error creating terminal: " + e.getMessage());
+            System.err.println("Shell I/O error: " + e.getMessage());
         } finally {
             HISTORY_MANAGER.saveOnExit();
         }
     }
 
-    private static void replLoop(LineReader reader, Terminal terminal) throws IOException {
+    /** Reads and executes commands until the session ends. */
+    private static void replLoop(LineReader reader, Terminal terminal, ExecContext context) throws IOException {
         while (true) {
-            try (ExecContext context = ExecContext.defaultContext()) {
-                JOB_MANAGER.checkCompletedJobs(context);
+            JOB_MANAGER.checkCompletedJobs(context);
 
-                String input = reader.readLine("$ ");
-                if (input.isBlank()) {
-                    continue;
-                }
-                Pipeline pipeline;
-                try {
-                    pipeline = PARSER.parse(input);
-                } catch (IllegalArgumentException e) {
-                    context.err().println("syntax error: " + e.getMessage());
-                    terminal.flush();
-                    continue;
-                }
+            String input = reader.readLine("$ ");
+            Optional<Pipeline> parsed = parseInput(input, context);
 
-                if (pipeline.isCommand(BuiltinRegistry.EXIT)) {
-                    break;
-                }
-
-                DISPATCH.dispatch(pipeline, context);
+            if (parsed.isEmpty()) {
                 terminal.flush();
-            } catch (UserInterruptException | EndOfFileException | IOError e) {
-                break;
+                continue;
             }
+
+            Pipeline pipeline = parsed.get();
+            if (pipeline.isCommand(BuiltinRegistry.EXIT)) {
+                return;
+            }
+
+            DISPATCH.dispatch(pipeline, context);
+            terminal.flush();
+        }
+    }
+
+    /** Parses input or reports a syntax error. */
+    private static Optional<Pipeline> parseInput(String input, ExecContext context) {
+        if (input.isBlank()) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(PARSER.parse(input));
+        } catch (IllegalArgumentException e) {
+            context.err().println("syntax error: " + e.getMessage());
+            return Optional.empty();
         }
     }
 
