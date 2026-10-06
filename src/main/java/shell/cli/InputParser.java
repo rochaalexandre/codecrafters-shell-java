@@ -1,66 +1,98 @@
 package shell.cli;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ListIterator;
+import java.util.Objects;
+import shell.command.env.VariablesManager;
 
 /**
  * Turns a raw input line into a {@link Pipeline} of {@link ParsedLine} stages.
- *
- * <p>Arguments are split on whitespace here. This is the single place quoting,
- * escaping and whitespace handling will live once those phases arrive, so nothing else
- * in the shell needs to learn about tokenization.
+ * The tokenizer handles quoting, escaping, and expansion; this class interprets grammar.
  */
 public final class InputParser {
-    /** fd (group 1: "", "1", "2") + operator (group 2: ">" or ">>") + target (group 3). */
-    private static final Pattern REDIRECT_PATTERN = Pattern.compile("([12]?)(>>?)\\s*(\\S+)");
+    private final VariablesManager variablesManager;
 
-    /**
-     * Splits on {@code |} into stages. Naive: a {@code |} inside quotes would split too;
-     * revisit when the quoting phase lands.
-     */
-    public Pipeline parse(String input) {
-        return new Pipeline(Arrays.stream(input.split("\\|"))
-                .map(String::strip)
-                .map(this::parseStage)
-                .toList());
+    /** Creates a parser with an empty variable store. */
+    public InputParser() {
+        this(new VariablesManager());
     }
 
-    private ParsedLine parseStage(String input) {
-        boolean isBackgroundCommand = input.trim().endsWith("&");
-        String[] parts = input.replace("&", "").split("\\s+", 2);
-        String command = parts[0];
-        if (parts.length < 2 || parts[1].isBlank()) {
-            return new ParsedLine(command, List.of(), isBackgroundCommand);
-        }
+    /** Creates a parser using the shell's variable store. */
+    public InputParser(VariablesManager variablesManager) {
+        this.variablesManager = Objects.requireNonNull(variablesManager);
+    }
 
-        String rest = parts[1];
-        Matcher matcher = REDIRECT_PATTERN.matcher(rest);
-        String args = rest;
+    /** Converts raw input into a pipeline. */
+    public Pipeline parse(String input) {
+        List<Token> tokens = new ShellTokenizer(input, variablesManager::getVariable).tokenize();
+        List<ParsedLine> stages = convertTokensToStages(tokens);
+        return new Pipeline(stages);
+    }
+
+    /** Splits tokens at pipes and parses each stage. */
+    private List<ParsedLine> convertTokensToStages(List<Token> tokens) {
+        List<ParsedLine> parsedLines = new ArrayList<>();
+        List<Token> currentStage = new ArrayList<>();
+
+        for (Token token : tokens) {
+            if (token.type() == TokenType.PIPE) {
+                parsedLines.add(parseStage(currentStage));
+                currentStage.clear();
+            } else {
+                currentStage.add(token);
+            }
+        }
+        parsedLines.add(parseStage(currentStage));
+        return parsedLines;
+    }
+
+    /** Builds a command with arguments, redirects, and background status. */
+    private ParsedLine parseStage(List<Token> tokens) {
         Redirect stdout = null;
         Redirect stderr = null;
+        boolean background = false;
+        List<String> words = new ArrayList<>();
+        ListIterator<Token> remaining = tokens.listIterator();
 
-        boolean firstMatch = true;
-        while (matcher.find()) {
-            if (firstMatch) {
-                args = rest.substring(0, matcher.start()).trim();
-                firstMatch = false;
-            }
-            String fd = matcher.group(1); // "", "1", or "2"
-            Redirect r = new Redirect(matcher.group(3), matcher.group(2).equals(">>"));
-
-            if (fd.equals("2")) {
-                stderr = r;
-            } else {
-                stdout = r;  // "" or "1" both mean stdout
+        while (remaining.hasNext()) {
+            Token token = remaining.next();
+            switch (token.type()) {
+                case WORD -> words.add(token.value());
+                case STDOUT, STDOUT_APPEND -> stdout = readRedirect(token, remaining);
+                case STDERR, STDERR_APPEND -> stderr = readRedirect(token, remaining);
+                case BACKGROUND -> {
+                    requireEndOfStage(remaining);
+                    background = true;
+                }
+                case PIPE -> throw new IllegalArgumentException("Unexpected pipe in command stage");
             }
         }
 
-        // Quoted argument grouping remains deferred until the quoting phase.
-        args = args.replace("\"", "");
+        if (words.isEmpty()) {
+            throw new IllegalArgumentException("Expected command");
+        }
+        return new ParsedLine(words.getFirst(), words.subList(1, words.size()), stdout, stderr, background);
+    }
 
-        List<String> arguments = args.isBlank() ? List.of() : List.of(args.strip().split("\\s+"));
-        return new ParsedLine(command, arguments, stdout, stderr, isBackgroundCommand);
+    /** Consumes the next word as the redirect target. */
+    private Redirect readRedirect(Token operator, ListIterator<Token> remaining) {
+        if (!remaining.hasNext()) {
+            throw new IllegalArgumentException("Expected filename after " + operator.value());
+        }
+        Token target = remaining.next();
+        if (target.type() != TokenType.WORD) {
+            throw new IllegalArgumentException("Expected filename after " + operator.value());
+        }
+        boolean append = operator.type() == TokenType.STDOUT_APPEND
+                || operator.type() == TokenType.STDERR_APPEND;
+        return new Redirect(target.value(), append);
+    }
+
+    /** Rejects tokens after a background operator. */
+    private void requireEndOfStage(ListIterator<Token> remaining) {
+        if (remaining.hasNext()) {
+            throw new IllegalArgumentException("Background operator must end the command stage");
+        }
     }
 }

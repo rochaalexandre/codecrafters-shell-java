@@ -7,7 +7,6 @@ import shell.cli.Pipeline;
 import shell.cli.Redirect;
 import shell.io.ExecContext;
 import shell.command.builtin.EchoBuiltin;
-import shell.command.env.VariablesManager;
 import shell.command.exec.ExternalCommandRunner;
 import shell.command.job.JobManager;
 
@@ -26,7 +25,7 @@ class CommandDispatchTest {
         Files.writeString(output, "existing content");
         ParsedLine line = new ParsedLine("external", List.of(), new Redirect(output.toString(), false), null, false);
         boolean[] called = {false};
-        ExternalCommandRunner runner = new ExternalCommandRunner(new VariablesManager()) {
+        ExternalCommandRunner runner = new ExternalCommandRunner() {
             @Override public int run(ParsedLine received) {
                 called[0] = true;
                 assertSame(line, received);
@@ -42,7 +41,7 @@ class CommandDispatchTest {
     void builtinWritesToConfiguredFileAndClosesIt() throws Exception {
         Path output = directory.resolve("output.txt");
         ParsedLine line = new ParsedLine("echo", List.of("hello"), new Redirect(output.toString(), false), null, false);
-        dispatcher(new Resolved.BuiltinCommand(new EchoBuiltin()), new ExternalCommandRunner(new VariablesManager()))
+        dispatcher(new Resolved.BuiltinCommand(new EchoBuiltin()), new ExternalCommandRunner())
                 .dispatch(Pipeline.of(line), ExecContext.defaultContext());
         assertEquals("hello" + System.lineSeparator(), Files.readString(output));
     }

@@ -23,14 +23,14 @@ import java.io.IOException;
 
 public class Main {
 
-    private static final InputParser PARSER = new InputParser();
     private static final PathResolver PATH_RESOLVER = new PathResolver();
     private static final JobManager JOB_MANAGER = new JobManager();
     private static final HistoryManager HISTORY_MANAGER = HistoryManager.fromEnvironment();
     private static final CompleterRegistry COMPLETER_REGISTRY = new CompleterRegistry();
     private static final VariablesManager VARIABLES_MANAGER = new VariablesManager();
+    private static final InputParser PARSER = new InputParser(VARIABLES_MANAGER);
     private static final BuiltinRegistry BUILTIN_REGISTRY = new BuiltinRegistry(PATH_RESOLVER, COMPLETER_REGISTRY, JOB_MANAGER, HISTORY_MANAGER, VARIABLES_MANAGER);
-    private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY, JOB_MANAGER, VARIABLES_MANAGER);
+    private static final CommandDispatch DISPATCH = new CommandDispatch(PATH_RESOLVER, BUILTIN_REGISTRY, JOB_MANAGER);
     private static final CompleterFactory COMPLETER_FACTORY = new CompleterFactory(PATH_RESOLVER, BUILTIN_REGISTRY, COMPLETER_REGISTRY);
 
     public static void main(String[] args) {
@@ -51,7 +51,17 @@ public class Main {
                 JOB_MANAGER.checkCompletedJobs(context);
 
                 String input = reader.readLine("$ ");
-                Pipeline pipeline = PARSER.parse(input);
+                if (input.isBlank()) {
+                    continue;
+                }
+                Pipeline pipeline;
+                try {
+                    pipeline = PARSER.parse(input);
+                } catch (IllegalArgumentException e) {
+                    context.err().println("syntax error: " + e.getMessage());
+                    terminal.flush();
+                    continue;
+                }
 
                 if (pipeline.isCommand(BuiltinRegistry.EXIT)) {
                     break;

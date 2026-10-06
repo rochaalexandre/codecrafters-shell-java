@@ -2,21 +2,13 @@ package shell.command.exec;
 
 import shell.cli.ParsedLine;
 import shell.cli.Redirect;
-import shell.command.env.VariablesManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 public class ExternalCommandRunner {
-    private static VariablesManager variablesManager = null;
-
-    public ExternalCommandRunner(VariablesManager variablesManager) {
-        ExternalCommandRunner.variablesManager = variablesManager;
-    }
-
     public int run(ParsedLine line) {
         ProcessBuilder pb = getProcessBuilder(line);
         try (Process proc = pb.start()) {
@@ -38,22 +30,13 @@ public class ExternalCommandRunner {
     public static ProcessBuilder getProcessBuilder(ParsedLine line) {
         List<String> commandList = new ArrayList<>();
         commandList.add(line.command());
-        commandList.addAll(getAgrsWithReplacedEnv(line));
+        commandList.addAll(line.args());
         ProcessBuilder pb = new ProcessBuilder(commandList);
         pb.directory(new File(System.getProperty("user.dir")));
         pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
         pb.redirectOutput(target(line.stdout()));
         pb.redirectError(target(line.stderr()));
         return pb;
-    }
-
-    private static List<String> getAgrsWithReplacedEnv(ParsedLine line) {
-        List<String> args = line.args();
-        if (variablesManager != null) {
-            args = args.stream().map(arg -> variablesManager.replaceVariables(arg))
-                    .filter(Predicate.not(String::isEmpty)).toList();
-        }
-        return args;
     }
 
     /** A file destination for {@code redirect}, or the parent terminal when it is {@code null}. */
